@@ -258,7 +258,7 @@ function renderComposition(a,p,i,options={}){
  const theme=themes[a.theme]||themes.tet,variant=options.variant??(i%5);
  const media=sliceItems(a,p),demo=options.demo||0;
  const title=p.type==='cover'?(p.title||a.title):p.type==='ending'?'Thương nhớ đong đầy':(p.title||a.title);
- const caption=p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
+ const caption=p.caption!==undefined?p.caption:p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
  let photos='';const mediaCount=demo?4:media.length;for(let n=0;n<mediaCount;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n],n,demo,!!options.read)+'</div>';
  return '<div class="memory-composition variant-'+variant+' count-'+mediaCount+(options.read?' read-mode':'')+'">'+
  '<div class="slice-texture"></div><div class="slice-kicker">'+safe(theme[0]).toUpperCase()+' · KỶ NIỆM</div>'+
@@ -511,17 +511,43 @@ function generateAlbum(){
 let albumReturnView='albums';
 function openAlbum(id){readerOrigin='albums';albumReturnView='albums';activeAlbum=id;activePage=0;navigate('album')}
 function current(){return db.albums.find(a=>a.id===activeAlbum)}
+function albumMenu(){
+ const a=current();if(!a)return;
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet"><button class="back" onclick="closeModal()">✕ Đóng</button><h2>'+safe(a.title)+'</h2><p class="muted">Quản lý album</p>'+
+ '<div class="editor-panel"><button class="btn" onclick="closeModal();navigate(\'editor\')">✎ Chỉnh sửa trang</button><button class="btn" onclick="closeModal();addToAlbum()">＋ Thêm kỷ niệm</button>'+
+ '<button class="btn" onclick="closeModal();renameAlbum()">✎ Đổi tên album</button><button class="btn" style="color:#a33e46" onclick="closeModal();deleteAlbum()">🗑 Xóa album</button></div></div>';
+}
 function renderAlbum(){
  const a=current();if(!a)return '<section class="section">Không tìm thấy album</section>';
  const p=a.pages[activePage];
- return '<section class="section"><button class="back" onclick="navigate(albumReturnView)">← Quay lại</button>'+
- '<div class="eyebrow">'+(a.accepted?'ALBUM ĐÃ LƯU':'XEM TRƯỚC ALBUM')+'</div><h1 class="title">'+safe(a.title)+'</h1>'+
- '<div class="preview-nav"><button class="btn" onclick="turn(-1)">← Trước</button><b>Trang '+(activePage+1)+' / '+a.pages.length+'</b><button class="btn" onclick="turn(1)">Sau →</button></div>'+
+ return '<section class="section album-read-shell"><div class="album-toolbar"><button class="back" onclick="navigate(readerOrigin)">← '+(readerOrigin==='home'?'Trang chủ':'Album')+'</button><button class="btn" onclick="albumMenu()" aria-label="Quản lý album">⋯</button></div>'+
+ '<div class="eyebrow">'+(a.accepted?'ALBUM ĐÃ HOÀN THÀNH':'BẢN NHÁP ALBUM')+'</div><h1 class="title">'+safe(a.title)+'</h1>'+
  renderComposition(a,p,activePage,{variant:(a.pageVariants?.[activePage]??activePage%5),read:true})+
- '<div class="row"><button class="btn" onclick="redesign()">✦ Đổi bố cục</button><button class="btn primary" onclick="acceptAlbum()">✓ '+(a.accepted?'Đã lưu':'Lưu album')+'</button></div>'+
- '<div class="row" style="margin-top:10px"><button class="btn" onclick="addToAlbum()">＋ Thêm kỷ niệm</button><button class="btn" onclick="shareAlbum()">↗ Chia sẻ</button></div><div class="row" style="margin-top:10px"><button class="btn" onclick="renameAlbum()">✎ Đổi tên album</button><button class="btn" style="color:#a33e46" onclick="deleteAlbum()">🗑 Xóa album</button></div>'+
- '<p class="muted">Đây là bản dàn trang tự động theo mẫu. Tính năng AI thiết kế từ mô tả chưa kết nối.</p></section>';
+ '<div class="album-read-actions"><button class="btn" onclick="turn(-1)" '+(activePage===0?'disabled':'')+' aria-label="Trang trước">← Trước</button><span class="muted">'+(activePage+1)+' / '+a.pages.length+'</span><button class="btn" onclick="turn(1)" '+(activePage>=a.pages.length-1?'disabled':'')+' aria-label="Trang sau">Sau →</button></div>'+
+ '<div class="row"><button class="btn" onclick="navigate(\'editor\')">✎ Chỉnh sửa trang</button>'+
+ (a.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>')+'</div></section>';
 }
+function editPageText(field,value){
+ const a=current();if(!a)return;const p=a.pages[activePage];p[field]=String(value||'').slice(0,300);
+ a.accepted=false;save();
+ const preview=$('editorPreview');if(preview)preview.innerHTML=renderComposition(a,p,activePage,{variant:a.pageVariants?.[activePage]??activePage%5,read:true});
+}
+function renderEditor(){
+ const a=current();if(!a)return '<section class="section">Album không tồn tại.</section>';
+ const p=a.pages[activePage];
+ const caption=p.caption!==undefined?p.caption:((p.items||[]).map(id=>db.memories.find(m=>m.id===id)).find(m=>m?.note)?.note||a.prompt||'');
+ return '<section class="section"><div class="album-toolbar"><button class="back" onclick="navigate(\'album\')">← Xem album</button><span class="eyebrow">CHỈNH SỬA TRANG</span></div>'+
+ '<h1 class="editor-heading">'+safe(a.title)+'</h1><p class="editor-note">Trang '+(activePage+1)+'/'+a.pages.length+' · Thay đổi được lưu ngay trên thiết bị.</p>'+
+ '<div id="editorPreview">'+renderComposition(a,p,activePage,{variant:a.pageVariants?.[activePage]??activePage%5,read:true})+'</div>'+
+ '<div class="editor-panel"><label class="label" for="pageTitleEdit">Tiêu đề trang</label><input class="field" id="pageTitleEdit" value="'+safe(p.title||'')+'" maxlength="120" oninput="editPageText(\'title\',this.value)">'+
+ '<label class="label" for="pageCaptionEdit">Lời nhắn trên trang</label><textarea class="field" id="pageCaptionEdit" rows="3" maxlength="300" oninput="editPageText(\'caption\',this.value)">'+safe(caption)+'</textarea></div>'+
+ '<div class="row" style="margin-top:14px"><button class="btn" onclick="redesign()">✦ Đổi bố cục</button><button class="btn" onclick="addToAlbum()">＋ Thêm ảnh/video</button></div>'+
+ '<div class="row" style="margin-top:10px"><button class="btn" onclick="editNavigatePage(-1)" '+(activePage===0?'disabled':'')+'>← Trang trước</button><button class="btn" onclick="editNavigatePage(1)" '+(activePage===a.pages.length-1?'disabled':'')+'>Trang sau →</button></div>'+
+ '<p class="editor-note" style="margin-top:20px">Đây là trình chỉnh sửa cơ bản. Kéo thả đối tượng, tách nền và chỉnh nhạc đa lớp sẽ được phát triển ở giai đoạn Editor nâng cao.</p></section>';
+}
+function editNavigatePage(n){const a=current();activePage=Math.max(0,Math.min(a.pages.length-1,activePage+n));render();scrollTo(0,0)}
+
 function turn(n){const a=current();activePage=Math.max(0,Math.min(a.pages.length-1,activePage+n));render()}function acceptAlbum(){current().accepted=true;save();render();notify('Đã lưu album')}
 function redesign(){const a=current();a.pageVariants=a.pageVariants||{};a.pageVariants[activePage]=((a.pageVariants[activePage]??activePage%5)+1)%5;a.accepted=false;save();render();notify('Đã đổi bố cục trang '+(activePage+1)+', giữ nguyên nội dung gốc')}
 function addToAlbum(){
