@@ -155,7 +155,94 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .library-tile.is-selected{outline:2px solid #b46873;outline-offset:-2px}
 @keyframes viewerIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.photo-viewer{animation:none}}
-.top .top-right{display:flex;align-items:center;gap:8px}.top .account-trigger{height:44px;width:44px;border-radius:50%;background:#f5eae5;color:#975d64;font-size:22px}.top .top-add{font-size:12px}.nav{justify-content:space-evenly}.nav button{min-height:50px;min-width:82px}.album-state{font-size:11px;color:#945b60}.album-overview{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.album-overview .card .art{height:130px;overflow:hidden}.album-overview .art img{width:100%;height:100%;object-fit:cover}.album-overview .card .details{min-height:90px}.library-filter-bar{display:flex;gap:7px;margin:10px 0 16px;overflow:auto}.library-filter-bar button{border-radius:100px;padding:11px 14px;white-space:nowrap;background:#f2ebe5;color:#786a62}.library-filter-bar button.active{background:#a7656a;color:#fff}.album-read-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:15px 0}.album-read-actions button{min-height:44px}.editor-panel{display:grid;gap:10px}.editor-panel .field{margin-bottom:6px}@media(max-width:370px){.top .top-add{display:none}}</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
+.top .top-right{display:flex;align-items:center;gap:8px}.top .account-trigger{height:44px;width:44px;border-radius:50%;background:#f5eae5;color:#975d64;font-size:22px}.top .top-add{font-size:12px}.nav{justify-content:space-evenly}.nav button{min-height:50px;min-width:82px}.album-state{font-size:11px;color:#945b60}.album-overview{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.album-overview .card .art{height:130px;overflow:hidden}.album-overview .art img{width:100%;height:100%;object-fit:cover}.album-overview .card .details{min-height:90px}.library-filter-bar{display:flex;gap:7px;margin:10px 0 16px;overflow:auto}.library-filter-bar button{border-radius:100px;padding:11px 14px;white-space:nowrap;background:#f2ebe5;color:#786a62}.library-filter-bar button.active{background:#a7656a;color:#fff}.album-read-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:15px 0}.album-read-actions button{min-height:44px}.editor-panel{display:grid;gap:10px}.editor-panel .field{margin-bottom:6px}@media(max-width:370px){.top .top-add{display:none}}
+/* A physical-feeling photobook, progressive-enhancement animation. */
+.chronicle-card{border:0;background:transparent;width:100%;padding:0;text-align:left;margin:6px 0 22px;display:block;color:inherit}
+.chronicle-cover{height:284px;border-radius:6px 13px 13px 5px;position:relative;overflow:hidden;padding:21px 18px 16px 33px;background:linear-gradient(140deg,#aa5d5f 0%,#dcaaa1 49%,#9e5655 100%);color:#fff8eb;box-shadow:5px 11px 0 -4px #e8d5c7,0 14px 25px #51302838;isolation:isolate}
+.chronicle-cover:before{content:"";position:absolute;inset:0;opacity:.22;background-image:radial-gradient(#fff8 1px,transparent 1px);background-size:12px 12px;pointer-events:none}
+.chronicle-cover-spine{position:absolute;top:0;bottom:0;left:10px;width:9px;background:linear-gradient(90deg,#55242b90,transparent,#ffffff4d);z-index:1}
+.chronicle-small{letter-spacing:2px;font-size:9px;position:relative;z-index:2}
+.chronicle-cover h2{font:35px/1.03 Georgia,serif;letter-spacing:-1px;position:relative;z-index:2;margin:18px 0 14px}
+.chronicle-cover h2 i{font-weight:400}
+.chronicle-cover-pictures{height:100px;display:flex;align-items:center;justify-content:center;gap:7px;position:relative}
+.chronicle-cover-pictures img{width:30%;height:96px;object-fit:cover;border:4px solid #fff7ed;box-shadow:0 4px 10px #552a2b4f;transform:rotate(-7deg)}
+.chronicle-cover-pictures img:nth-child(2){transform:rotate(5deg) translateY(6px);z-index:2}
+.chronicle-cover-pictures img:nth-child(3){transform:rotate(-3deg)}
+.chronicle-cover-pictures span{font-size:35px}
+.chronicle-cover-foot{position:relative;text-align:center;font-size:9px;letter-spacing:1.9px;margin-top:14px}
+.chronicle-card-info{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 2px 0}
+.chronicle-card-info b{display:block;font:18px Georgia,serif}.chronicle-card-info small{display:block;color:#907e75;font-size:11px;margin-top:5px}
+.chronicle-card-info>span{font-size:12px;white-space:nowrap;color:#a45d64;font-weight:800}
+.book-reader{padding-top:14px;max-width:500px}
+.book-reader .book-reader-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.book-reader .book-reader-top button{min-height:44px}
+.book-reader .book-reader-top .book-small-btn{padding:9px 12px}
+.book-reader-subtitle{font-size:10px;letter-spacing:1.9px;color:#a16f67;margin:5px 0 9px;font-weight:800}
+.book-reader h1{font:29px/1.12 Georgia,serif;margin:0 0 9px}
+.book-reader .book-hint{font-size:12px;color:#988478;margin:4px 0 13px}
+.book-stage{width:100%;aspect-ratio:3/4;min-height:350px;max-height:calc(100dvh - 218px);position:relative;perspective:1400px;overflow:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.book-stage:active{cursor:grabbing}
+.book-current,.book-flip-layer{position:absolute;inset:0}
+.book-current{box-shadow:0 14px 22px #39241f38,0 2px 0 3px #f7e9dd;overflow:hidden;border-radius:2px 9px 9px 2px;isolation:isolate;background:#fffaf1}
+.book-current:after{content:"";position:absolute;inset:0 auto 0 0;width:15px;pointer-events:none;z-index:11;background:linear-gradient(90deg,#2b181c36,#fff7 45%,transparent)}
+.book-current:before{content:"";position:absolute;bottom:4px;right:4px;width:24px;height:24px;background:linear-gradient(135deg,transparent 40%,#f3e1d5 52%,#fff9f1 70%);filter:drop-shadow(-2px -2px 2px #5a343424);z-index:12;pointer-events:none}
+.book-sheet-content{width:100%;height:100%;overflow:hidden;position:relative;background:#fffaf4}
+.book-sheet-content .memory-composition{border-radius:0;width:100%;height:100%;aspect-ratio:auto;min-height:0;box-shadow:none;transform:none}
+.book-sheet-content .memory-composition.read-mode{margin:0;min-height:0}
+.book-sheet-content .slice-title{font-size:clamp(28px,8vw,43px)}
+.book-flip-layer{z-index:21;transform-style:preserve-3d;pointer-events:none;will-change:transform;transition:transform .72s cubic-bezier(.24,.61,.22,1)}
+.book-flip-layer.forward{transform-origin:left center}
+.book-flip-layer.backward{transform-origin:right center}
+.book-flip-layer.forward.flipping{transform:rotateY(-178deg)}
+.book-flip-layer.backward.flipping{transform:rotateY(178deg)}
+.book-flip-front,.book-flip-back{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 24px #332b3270;background:#fff9f0;border-radius:2px 10px 10px 2px}
+.book-flip-front .book-sheet-content{height:100%}
+.book-flip-back{transform:rotateY(180deg);background:linear-gradient(110deg,#d7b9aa,#fff7ec 25%,#f0e0d3 90%,#bb8d7e);box-shadow:inset 12px 0 18px #5e394126,0 10px 22px #432a2366}
+.book-flip-back:after{content:"KỶ NIỆM ✿";font:italic 24px Georgia,serif;color:#c5a89b;position:absolute;left:0;right:0;top:48%;text-align:center}
+.book-page-month{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 25px;background:radial-gradient(circle at 50% 22%,#fdf4e5,#e9d5c8);color:#97554f;gap:14px}
+.book-page-month .month-symbol{font-size:64px}
+.book-page-month .month-small{letter-spacing:3px;font-size:10px}
+.book-page-month h2{font:italic clamp(37px,11vw,53px)/1.05 Georgia,serif;margin:12px 0;overflow-wrap:anywhere}
+.book-page-month p{font:italic 16px/1.5 Georgia,serif;max-width:260px}
+.book-page-month:after{content:"✺     ✿     ✺";position:absolute;bottom:32px;letter-spacing:19px;left:0;right:0;font-size:18px;opacity:.4}
+.book-page-chapter{height:100%;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 25px 24px;color:#762f35;background:linear-gradient(140deg,#f6d9cc,#ffeeda)}
+.book-page-chapter.theme-tet{background:linear-gradient(145deg,#a31d29,#e84b38);color:#fff3db}
+.book-page-chapter.theme-love{background:linear-gradient(140deg,#f6c5ce,#fbeae5);color:#8f4557}
+.book-page-chapter.theme-travel{background:linear-gradient(145deg,#b2cdbd,#e6ecd1);color:#315e4c}
+.book-page-chapter.theme-family{background:linear-gradient(145deg,#d6b2a1,#fbebe2);color:#875149}
+.book-page-chapter .chapter-symbol{font-size:47px;margin-bottom:10px}
+.book-page-chapter .chapter-eyebrow{font-size:10px;letter-spacing:2px;font-weight:800}
+.book-page-chapter h2{font:italic clamp(34px,10vw,53px)/1.08 Georgia,serif;margin:11px 0 13px;max-width:100%;overflow-wrap:anywhere}
+.book-page-chapter .chapter-photos{display:flex;justify-content:center;align-items:center;gap:7px;height:145px;margin:12px 0 20px;width:100%}
+.book-page-chapter .chapter-photos img{width:31%;height:127px;object-fit:cover;border:5px solid #fffcf4;box-shadow:0 8px 14px #44232755;transform:rotate(-7deg)}
+.book-page-chapter .chapter-photos img:nth-child(2){transform:rotate(7deg) translateY(8px)}
+.book-page-chapter .chapter-photos img:nth-child(3){transform:rotate(-4deg)}
+.book-page-chapter .chapter-mood{font:italic 15px Georgia,serif}
+.book-page-chapter .chapter-photos:empty{height:42px}
+.book-page-ending{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:22px;text-align:center;background:linear-gradient(150deg,#f4e7dc,#f6dbd7);color:#92565d;padding:27px}
+.book-page-ending h2{font:italic 43px/1.14 Georgia,serif}
+.book-page-ending .ending-flower{font-size:82px}
+.book-page-cover .memory-composition{--accent:#a05b60}
+.book-page-cover{height:100%}
+.book-control-row{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:17px 0 8px}
+.book-control-row button{min-height:46px;min-width:90px;border-radius:22px}
+.book-control-row .page-label{font-size:12px;font-weight:700;color:#906e65;white-space:nowrap}
+.book-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.book-action-row button{flex:1;min-height:44px}
+.chronicle-contents-list{display:grid;gap:8px;max-height:57dvh;overflow:auto}
+.chronicle-contents-list button{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;border-radius:10px;background:#f5ede7;padding:11px;color:#78534d}
+.chronicle-month-heading{font:20px Georgia,serif;color:#805959;margin:14px 0 4px}
+.chronicle-manage-list{display:grid;gap:10px}
+.chronicle-manage-event{background:#faf1eb;border:1px solid #eadfd6;padding:12px;border-radius:13px}
+.chronicle-manage-event h3{font:20px Georgia,serif;margin:0 0 7px}
+.chronicle-manage-event small{font-size:11px;color:#927971}
+.chronicle-manage-event .event-items{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chronicle-manage-event .event-items button{padding:8px 10px;border-radius:15px;background:#fff;color:#9a5b60;font-size:11px}
+.chronicle-empty{padding:25px 15px;text-align:center;background:#fff5eb;border-radius:15px;margin-top:15px}
+@media(prefers-reduced-motion:reduce){.book-flip-layer{transition-duration:.01ms!important}}
+@media(min-width:700px){.book-sheet-content .slice-title{font-size:42px}}
+@media(max-width:360px){.book-stage{min-height:310px}.book-reader h1{font-size:26px}}
+</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false,libraryType='all',readerOrigin='albums',chroniclePage=0,bookFlipBusy=false;
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),save=()=>{try{localStorage.setItem('kyniem-correct-v1',JSON.stringify(db))}catch(e){notify('Bộ nhớ đầy: hãy dùng ảnh nhỏ hơn')}},notify=s=>{const e=$('toast');e.textContent=s;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)};
@@ -374,13 +461,13 @@ function homePageFeed(){
  '<div class="slice-card-caption"><b>'+safe(x.p.title)+'</b><small>'+(x.demo?'Bản mẫu minh họa':'Trang '+(x.i+1)+' · '+safe(x.a.title))+' ↗</small></div></button>').join('');
  return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="startAlbum()"><span class="emoji">✦</span><b>Tạo album</b><small>Chọn phong cách, nội dung và xem bản dàn trang</small></button></div><div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div></div></section>';
 }
-function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.id==='nav-'+(view==='wizard'||view==='album'||view==='editor'?'albums':view)));
+function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.id==='nav-'+(view==='wizard'||view==='album'||view==='editor'||view==='chronicle'||view==='chronicle-manage'?'albums':view)));
 let html='';if(view==='home')html=homePageFeed();
 if(view==='memories')html=libraryView();
-if(view==='albums')html='<section class="section"><div class="eyebrow">NHỮNG CÂU CHUYỆN CỦA BẠN</div><h1 class="title">Album</h1><p class="muted">Những câu chuyện được thiết kế từ ảnh, video và lời nhắn.</p><button class="btn primary" onclick="startAlbum()">✦ Tạo album mới</button><h2 style="margin:25px 0 12px;font:25px Georgia,serif">Đang thực hiện</h2><div class="album-overview">'+(db.albums.filter(a=>!a.accepted).map(albumCard).join('')||'<p class="muted">Chưa có bản nháp.</p>')+'</div><h2 style="margin:25px 0 12px;font:25px Georgia,serif">Đã hoàn thành</h2><div class="album-overview">'+(db.albums.filter(a=>a.accepted).map(albumCard).join('')||'<p class="muted">Chưa có album hoàn thành.</p>')+'</div></section>';
+if(view==='albums')html='<section class="section"><div class="eyebrow">CUỐN SÁCH VÀ NHỮNG CÂU CHUYỆN</div><h1 class="title">Album</h1><p class="muted">Một cuốn kỷ niệm xuyên suốt cuộc sống, cùng những album riêng của bạn.</p>'+renderChronicleCard()+'<h2 style="margin:26px 0 12px;font:25px Georgia,serif">Album riêng</h2><div class="eyebrow">NHỮNG CÂU CHUYỆN CỦA BẠN</div><h1 class="title">Album</h1><p class="muted">Những câu chuyện được thiết kế từ ảnh, video và lời nhắn.</p><button class="btn primary" onclick="startAlbum()">✦ Tạo album mới</button><h2 style="margin:25px 0 12px;font:25px Georgia,serif">Đang thực hiện</h2><div class="album-overview">'+(db.albums.filter(a=>!a.accepted).map(albumCard).join('')||'<p class="muted">Chưa có bản nháp.</p>')+'</div><h2 style="margin:25px 0 12px;font:25px Georgia,serif">Đã hoàn thành</h2><div class="album-overview">'+(db.albums.filter(a=>a.accepted).map(albumCard).join('')||'<p class="muted">Chưa có album hoàn thành.</p>')+'</div></section>';
 if(view==='me')html='<section class="section"><button class="back" onclick="navigate(\'home\')">← Trang chủ</button><div class="eyebrow">TÀI KHOẢN & CÀI ĐẶT</div><h1 class="title">Của tôi</h1><p class="muted">'+db.memories.length+' kỷ niệm · '+db.albums.length+' album</p><div class="panel-warning">⚠️ Kỷ niệm hiện chỉ lưu trên trình duyệt này. Xóa dữ liệu website hoặc đổi thiết bị có thể làm mất ảnh/video. Chưa có sao lưu đám mây.</div><h2 style="font-size:18px">Bảo vệ kỷ niệm</h2><p class="muted">Sao lưu ảnh, video và album thành một tệp để cất giữ hoặc khôi phục khi cần. Chức năng xuất tệp hỗ trợ tối đa khoảng 75 MB dữ liệu media.</p><div class="row"><button class="btn primary" onclick="exportBackup()">↓ Xuất sao lưu</button><button class="btn" onclick="document.getElementById(\'backupImport\').click()">↑ Khôi phục</button></div><input class="hidden" id="backupImport" type="file" accept=".json,application/json" onchange="importBackup(event)"><div class="row" style="margin-top:12px"><button class="btn" onclick="requestLocalProtection()">Bảo vệ lưu trữ</button><button class="btn" onclick="navigate(\'trash\')">🗑 Thùng rác ('+(db.trash.length+db.albumTrash.length)+')</button></div><p class="muted">AI tạo album, chia sẻ và đồng bộ thiết bị chưa được tích hợp trong prototype.</p></section>';
 if(view==='trash')html=trashView();
-if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();if(view==='editor')html=renderEditor();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures();if(view==='wizard'&&wizard.step===2)attachLibraryGestures('wizardGrid')}
+if(view==='chronicle')html=renderChronicle();if(view==='chronicle-manage')html=renderChronicleManage();if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();if(view==='editor')html=renderEditor();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures();if(view==='wizard'&&wizard.step===2)attachLibraryGestures('wizardGrid')}
 function filterMemories(q){$('memoryGrid').innerHTML=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(q.toLowerCase())).map(memoryCard).join('')}
 function startMemory(){uploadOrigin=view;mediaValue='';mediaKind='photo';pendingFiles=[];$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Lưu một kỷ niệm</h2><p class="muted">Chỉ cần chọn loại nội dung và lưu. Tên, ghi chú và album đều không bắt buộc.</p><div class="row"><button class="chip selected" onclick="setKind(\'photo\',this)">📷 Ảnh</button><button class="chip" onclick="setKind(\'video\',this)">🎬 Video</button><button class="chip" onclick="setKind(\'note\',this)">📝 Ghi chú</button></div><div id="upload"><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div></div><p id="uploadHint" class="muted">Chọn ảnh hoặc video. Có thể chọn nhiều tệp cùng lúc.</p><label class="label">Tên (không bắt buộc)</label><input class="field" id="memTitle" placeholder="Khoảnh khắc của tôi"><label class="label">Ghi chú (không bắt buộc)</label><textarea class="field" id="memNote" rows="3" placeholder="Bạn muốn nhớ điều gì?"></textarea><button class="btn primary" style="width:100%" id="saveMemoryButton" onclick="saveMemory()">Lưu vào bộ sưu tập</button></div>'}
 function setKind(k,b){mediaKind=k;pendingFiles=[];document.querySelectorAll('.sheet .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');$('upload').innerHTML=k==='note'?'':'<input class="field" type="file" multiple accept="'+(k==='video'?'video/*':'image/*')+'" onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div><p class="muted">Chọn nhiều tệp cùng lúc. Ảnh và video được lưu trên thiết bị.</p>'}
