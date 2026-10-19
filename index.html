@@ -163,7 +163,7 @@ const mediaDB=new Promise((resolve,reject)=>{const r=indexedDB.open('kyniem-medi
 async function putMedia(id,file){const d=await mediaDB;return new Promise((ok,fail)=>{const tx=d.transaction('files','readwrite');tx.objectStore('files').put(file,id);tx.oncomplete=ok;tx.onerror=()=>fail(tx.error)})}
 async function hydrateMedia(){try{const d=await mediaDB;await Promise.all(db.memories.filter(m=>m.mediaId).map(m=>new Promise(ok=>{const r=d.transaction('files').objectStore('files').get(m.mediaId);r.onsuccess=()=>{if(r.result)mediaURLs[m.id]=URL.createObjectURL(r.result);ok()};r.onerror=ok})))}catch(e){console.error('Không đọc được bộ nhớ media',e);notify('Không mở được kho ảnh trên trình duyệt này.')}finally{render()}}
 function mediaMarkup(m){const src=mediaURLs[m.id]||m.media||'';if(m.kind==='photo'&&src)return '<img style="width:100%;height:100%;object-fit:cover" src="'+src+'">';if(m.kind==='video'&&src)return '<video controls playsinline preload="metadata" style="width:100%;height:100%;max-height:320px;object-fit:contain;background:#111" src="'+src+'"></video>';return m.kind==='video'?'🎬':m.kind==='note'?'📝':'📷'}
-function navigate(v){if(v==='home'&&view!=='home')homeOrder=[];view=v;render();scrollTo(0,0)}function memoryCard(m){return '<button class="card" onclick="detail(\''+m.id+'\')"><div class="art">'+mediaMarkup(m)+'</div><div class="details"><b>'+safe(m.title||'Một kỷ niệm')+'</b><small>'+safe(m.date||'Vừa lưu')+'</small></div></button>'}
+function navigate(v){if(view==='wizard'&&v!==view&&wizard.step>1&&(wizard.prompt||wizard.selected.length)){if(!confirm('Rời trình tạo album? Nội dung đang chọn chưa được lưu.'))return}if(v==='home'&&view!=='home')homeOrder=[];view=v;render();scrollTo(0,0)}function memoryCard(m){return '<button class="card" onclick="detail(\''+m.id+'\')"><div class="art">'+mediaMarkup(m)+'</div><div class="details"><b>'+safe(m.title||'Một kỷ niệm')+'</b><small>'+safe(m.date||'Vừa lưu')+'</small></div></button>'}
 function libraryTile(m){const src=mediaURLs[m.id]||m.media||'';const visual=m.kind==='photo'&&src?'<img loading="lazy" src="'+src+'">':m.kind==='video'&&src?'<video muted preload="metadata" src="'+src+'"></video><span class="duration">▶</span>':m.kind==='note'?'📝':'📷';return '<button class="library-tile '+(librarySelected.has(m.id)?'is-selected':'')+'" onclick="libraryTap(\''+m.id+'\')">'+visual+(librarySelect?'<span class="tick">'+(librarySelected.has(m.id)?'✓':'')+'</span>':'')+'</button>'}
 function libraryTap(id){if(Date.now()<libraryBlockClickUntil)return;if(!librarySelect){detail(id);return}if(librarySelected.has(id))librarySelected.delete(id);else librarySelected.add(id);updateLibrarySelection()}
 function toggleLibrarySelect(){librarySelect=!librarySelect;librarySelected.clear();render()}
@@ -352,19 +352,20 @@ function viewerTouchStart(e){if(e.touches.length===1)viewerTouchX=e.touches[0].c
 function viewerTouchEnd(e){if(viewerTouchX===null||e.changedTouches.length!==1)return;const dx=e.changedTouches[0].clientX-viewerTouchX;viewerTouchX=null;if(Math.abs(dx)>65)stepViewer(dx<0?1:-1)}
 function viewerDelete(){if(!viewedMemoryId||!confirm('Chuyển kỷ niệm này vào Thùng rác?'))return;const id=viewedMemoryId;closeViewer();trashMemories([id])}
 
+let latestTrashBatch=[];
 function showUndo(count){
  const e=$('toast');e.classList.remove('hidden');e.replaceChildren();
  const t=document.createElement('span');t.textContent='Đã chuyển '+count+' kỷ niệm vào Thùng rác';
- const b=document.createElement('button');b.type='button';b.textContent='Hoàn tác';b.onclick=()=>{restoreLatestTrash();e.classList.add('hidden')};
+ const b=document.createElement('button');b.type='button';b.textContent='Hoàn tác';b.onclick=()=>{for(const id of latestTrashBatch.slice().reverse())restoreTrash(id,true);latestTrashBatch=[];render();notify('Đã khôi phục '+count+' kỷ niệm')};
  e.append(t,b);setTimeout(()=>{if(e.contains(b))e.classList.add('hidden')},8500);
 }
 function trashMemories(ids){
- const set=new Set(ids);let count=0;
+ const set=new Set(ids);let count=0;latestTrashBatch=[];
  for(const id of set){
   const index=db.memories.findIndex(m=>m.id===id);if(index<0)continue;
   const memory=db.memories[index];
   const refs=db.albums.map(a=>({albumId:a.id,indices:(a.items||[]).flatMap((x,i)=>x===id?[i]:[]),pages:(a.pages||[]).flatMap((p,i)=>(p.items||[]).includes(id)?[{i,page:JSON.parse(JSON.stringify(p))}]:[])})).filter(x=>x.indices.length||x.pages.length);
-  db.trash.unshift({memory,index,refs,deletedAt:Date.now()});count++;
+  db.trash.unshift({memory,index,refs,deletedAt:Date.now()});latestTrashBatch.push(id);count++;
  }
  if(!count)return;
  db.memories=db.memories.filter(m=>!set.has(m.id));
@@ -374,7 +375,7 @@ function trashMemories(ids){
  }
  save();render();showUndo(count);
 }
-function restoreTrash(id){
+function restoreTrash(id,silent=false){
  const i=db.trash.findIndex(x=>x.memory.id===id);if(i<0)return;
  const item=db.trash.splice(i,1)[0];
  if(!db.memories.some(m=>m.id===id))db.memories.splice(Math.min(item.index,db.memories.length),0,item.memory);
@@ -384,7 +385,7 @@ function restoreTrash(id){
   for(const pos of ref.indices){if(!a.items.includes(id))a.items.splice(Math.min(pos,a.items.length),0,id)}
   for(const p of ref.pages){const currentPage=a.pages[p.i];if(currentPage){currentPage.items=currentPage.items||[];for(let n=0;n<p.page.items.length;n++)if(p.page.items[n]===id&&!currentPage.items.includes(id))currentPage.items.splice(Math.min(n,currentPage.items.length),0,id)}else{const recovered={...p.page,items:(p.page.items||[]).filter(x=>x===id||db.memories.some(m=>m.id===x))};a.pages.splice(Math.min(p.i,a.pages.length),0,recovered)}}
  }
- save();render();notify('Đã khôi phục kỷ niệm');
+ save();if(!silent){render();notify('Đã khôi phục kỷ niệm')}
 }
 function restoreLatestTrash(){if(db.trash.length)restoreTrash(db.trash[0].memory.id)}
 async function permanentlyDeleteTrash(id){
@@ -502,7 +503,7 @@ function generateAlbum(){
  }
  pages.push({title:'Những điều còn ở lại ♡',type:'ending',items:selected.slice(-4).map(m=>m.id)});
  const a={id:'a'+Date.now(),title:name,prompt:wizard.prompt,theme:inferAlbumTheme(),style:inferAlbumStyle(),items:wizard.selected.slice(),pages,accepted:false};
- db.albums.unshift(a);save();openAlbum(a.id);notify('Đã tạo các trang collage mô phỏng');
+ db.albums.unshift(a);save();view='albums';openAlbum(a.id);notify('Đã tạo các trang collage mô phỏng');
 }
 let albumReturnView='albums';
 function openAlbum(id){albumReturnView='albums';activeAlbum=id;activePage=0;navigate('album')}
