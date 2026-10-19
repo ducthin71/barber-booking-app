@@ -138,7 +138,24 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .home-v3 .action,.home-v3 .slice-header button{min-height:44px}
 .memory-composition.read-mode .photo-layer video{pointer-events:auto;position:relative;z-index:3}
 .memory-composition.read-mode .photo-layer video::-webkit-media-controls-panel{display:flex}
-</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
+
+/* UX polish: photo viewer and predictable selection without losing scroll. */
+.photo-viewer{position:fixed;inset:0;background:#171413;z-index:45;display:flex;flex-direction:column;color:white;animation:viewerIn .22s ease-out}
+.photo-viewer .viewer-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+.photo-viewer .viewer-top button,.photo-viewer .viewer-bottom button{min-width:44px;min-height:44px;border-radius:25px;background:#ffffff22;color:#fff;font-size:18px}
+.photo-viewer .viewer-main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-y}
+.photo-viewer .viewer-main img,.photo-viewer .viewer-main video{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}
+.photo-viewer .viewer-main .viewer-note{max-width:90%;font:21px/1.65 Georgia,serif;text-align:center;white-space:pre-wrap}
+.photo-viewer .viewer-bottom{padding:14px 16px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#0008);display:flex;align-items:center;gap:12px}
+.photo-viewer .viewer-caption{flex:1;min-width:0}
+.photo-viewer .viewer-caption b{font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photo-viewer .viewer-caption small{font-size:12px;color:#e3d7d4}
+.photo-viewer .viewer-index{font-size:12px;color:#dbcac5}
+.photo-viewer .viewer-top .viewer-close{background:#fff;color:#4e3d3b}
+.library-tile.is-selected{outline:2px solid #b46873;outline-offset:-2px}
+@keyframes viewerIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.photo-viewer{animation:none}}
+</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="viewerHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false;
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),save=()=>{try{localStorage.setItem('kyniem-correct-v1',JSON.stringify(db))}catch(e){notify('Bộ nhớ đầy: hãy dùng ảnh nhỏ hơn')}},notify=s=>{const e=$('toast');e.textContent=s;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)};
@@ -148,7 +165,7 @@ async function hydrateMedia(){try{const d=await mediaDB;await Promise.all(db.mem
 function mediaMarkup(m){const src=mediaURLs[m.id]||m.media||'';if(m.kind==='photo'&&src)return '<img style="width:100%;height:100%;object-fit:cover" src="'+src+'">';if(m.kind==='video'&&src)return '<video controls playsinline preload="metadata" style="width:100%;height:100%;max-height:320px;object-fit:contain;background:#111" src="'+src+'"></video>';return m.kind==='video'?'🎬':m.kind==='note'?'📝':'📷'}
 function navigate(v){if(v==='home'&&view!=='home')homeOrder=[];view=v;render();scrollTo(0,0)}function memoryCard(m){return '<button class="card" onclick="detail(\''+m.id+'\')"><div class="art">'+mediaMarkup(m)+'</div><div class="details"><b>'+safe(m.title||'Một kỷ niệm')+'</b><small>'+safe(m.date||'Vừa lưu')+'</small></div></button>'}
 function libraryTile(m){const src=mediaURLs[m.id]||m.media||'';const visual=m.kind==='photo'&&src?'<img loading="lazy" src="'+src+'">':m.kind==='video'&&src?'<video muted preload="metadata" src="'+src+'"></video><span class="duration">▶</span>':m.kind==='note'?'📝':'📷';return '<button class="library-tile '+(librarySelected.has(m.id)?'is-selected':'')+'" onclick="libraryTap(\''+m.id+'\')">'+visual+(librarySelect?'<span class="tick">'+(librarySelected.has(m.id)?'✓':'')+'</span>':'')+'</button>'}
-function libraryTap(id){if(Date.now()<libraryBlockClickUntil)return;if(!librarySelect){detail(id);return}if(librarySelected.has(id))librarySelected.delete(id);else librarySelected.add(id);render()}
+function libraryTap(id){if(Date.now()<libraryBlockClickUntil)return;if(!librarySelect){detail(id);return}if(librarySelected.has(id))librarySelected.delete(id);else librarySelected.add(id);updateLibrarySelection()}
 function toggleLibrarySelect(){librarySelect=!librarySelect;librarySelected.clear();render()}
 const clampCols=n=>Math.max(2,Math.min(7,Math.round(n)));
 const touchDist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
@@ -202,8 +219,14 @@ function attachLibraryGestures(gridId='libraryGrid'){
 }
 
 function librarySearch(v){libraryQuery=v;render()}
-function libraryView(){const filtered=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase()));return '<div class="library-head"><h1>Thư viện</h1><div class="library-actions"><button class="library-round" onclick="toggleLibrarySelect()">'+(librarySelect?'Xong':'Chọn')+'</button></div></div><div class="library-toolbar"><span>Thu nhỏ</span><input aria-label="Điều chỉnh kích thước ảnh" type="range" min="2" max="7" step="1" value="'+libraryCols+'" id="librarySlider" oninput="changeLibraryCols(this.value)"><span id="colsLabel">'+libraryCols+' cột</span><button class="library-round" onclick="startMemory()">＋</button></div><input class="field library-search" placeholder="⌕ Tìm kỷ niệm" value="'+safe(libraryQuery)+'" oninput="libraryQuery=this.value;document.getElementById(\'libraryGrid\').innerHTML=db.memories.filter(m=>(m.title+\' \'+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(libraryTile).join(\'\')"><div class="library-grid" id="libraryGrid" style="--library-cols:'+libraryCols+'">'+filtered.map(libraryTile).join('')+'</div>'+(filtered.length?'':'<div class="library-empty">Chưa có kỷ niệm nào. Nhấn ＋ để tải ảnh hoặc video lên.</div>')+(librarySelect?'<div class="library-bottom"><span>'+librarySelected.size+' đã chọn</span><button onclick="selectAllMemories()">Chọn tất cả</button><button class="danger" onclick="deleteSelectedMemories()">Xóa ('+librarySelected.size+')</button></div>':'')}
-function selectAllMemories(){const ids=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(m=>m.id);if(ids.every(id=>librarySelected.has(id)))ids.forEach(id=>librarySelected.delete(id));else ids.forEach(id=>librarySelected.add(id));render()}
+function updateLibrarySelection(){
+ const grid=$('libraryGrid');if(!grid)return;
+ grid.innerHTML=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(libraryTile).join('');
+ const action=$('librarySelectedCounter');if(action)action.textContent=librarySelected.size+' đã chọn';
+ const del=$('libraryDeleteSelected');if(del){del.textContent='Xóa ('+librarySelected.size+')';del.disabled=!librarySelected.size}
+}
+function libraryView(){const filtered=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase()));return '<div class="library-head"><h1>Thư viện</h1><div class="library-actions"><button class="library-round" onclick="toggleLibrarySelect()">'+(librarySelect?'Xong':'Chọn')+'</button></div></div><div class="library-toolbar"><span>Thu nhỏ</span><input aria-label="Điều chỉnh kích thước ảnh" type="range" min="2" max="7" step="1" value="'+libraryCols+'" id="librarySlider" oninput="changeLibraryCols(this.value)"><span id="colsLabel">'+libraryCols+' cột</span><button class="library-round" onclick="startMemory()">＋</button></div><input class="field library-search" placeholder="⌕ Tìm kỷ niệm" value="'+safe(libraryQuery)+'" oninput="libraryQuery=this.value;document.getElementById(\'libraryGrid\').innerHTML=db.memories.filter(m=>(m.title+\' \'+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(libraryTile).join(\'\')"><div class="library-grid" id="libraryGrid" style="--library-cols:'+libraryCols+'">'+filtered.map(libraryTile).join('')+'</div>'+(filtered.length?'':'<div class="library-empty">Chưa có kỷ niệm nào. Nhấn ＋ để tải ảnh hoặc video lên.</div>')+(librarySelect?'<div class="library-bottom"><span id="librarySelectedCounter">'+librarySelected.size+' đã chọn</span><button onclick="selectAllMemories()">Chọn tất cả</button><button id="libraryDeleteSelected" class="danger" '+(!librarySelected.size?'disabled':'')+' onclick="deleteSelectedMemories()">Xóa ('+librarySelected.size+')</button></div>':'')}
+function selectAllMemories(){const ids=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(m=>m.id);if(ids.every(id=>librarySelected.has(id)))ids.forEach(id=>librarySelected.delete(id));else ids.forEach(id=>librarySelected.add(id));updateLibrarySelection()}
 function deleteSelectedMemories(){if(!librarySelected.size)return;if(!confirm('Chuyển '+librarySelected.size+' kỷ niệm vào Thùng rác? Có thể khôi phục sau.'))return;const ids=Array.from(librarySelected);librarySelected.clear();librarySelect=false;trashMemories(ids)}
 function albumCard(a){return '<button class="card" onclick="openAlbum(\''+a.id+'\')"><div class="art" style="background:'+themes[a.theme][1]+'">'+themes[a.theme][2]+'</div><div class="details"><b>'+safe(a.title)+'</b><small>'+a.pages.length+' trang · '+themes[a.theme][0]+'</small></div></button>'}
 
@@ -301,7 +324,33 @@ async function saveMemory(){
  }else notify('Không lưu được tệp. Có thể bộ nhớ đã đầy; hãy kiểm tra dung lượng.');
 }
 function closeModal(){$('modal').classList.add('hidden')}
-function detail(id){const m=db.memories.find(x=>x.id===id);$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>'+safe(m.title)+'</h2><p>'+safe(m.note||'Chưa có ghi chú')+'</p><div style="max-height:55dvh;overflow:auto">'+mediaMarkup(m)+'</div><p class="muted">Bản gốc luôn nằm trong bộ sưu tập.</p><button class="btn" style="color:#a33e46;width:100%;margin-top:10px" onclick="deleteMemory(\''+m.id+'\')">🗑 Xóa kỷ niệm</button></div>'}
+
+let viewedMemoryId=null,viewerTouchX=null;
+function detail(id){viewedMemoryId=id;renderMemoryViewer()}
+function closeViewer(){const host=$('viewerHost');if(host)host.innerHTML='';viewedMemoryId=null}
+function stepViewer(direction){
+ const ids=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(m=>m.id);
+ const pos=ids.indexOf(viewedMemoryId);
+ if(pos<0)return;
+ viewedMemoryId=ids[Math.min(ids.length-1,Math.max(0,pos+direction))];
+ renderMemoryViewer();
+}
+function renderMemoryViewer(){
+ const m=db.memories.find(x=>x.id===viewedMemoryId);if(!m){closeViewer();return}
+ const ids=db.memories.filter(x=>(x.title+' '+x.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(x=>x.id);
+ const index=ids.indexOf(m.id);
+ const src=mediaURLs[m.id]||m.media||'';
+ const media=m.kind==='photo'&&src?'<img alt="'+safe(m.title)+'" src="'+src+'">':
+  m.kind==='video'&&src?'<video playsinline controls preload="metadata" src="'+src+'"></video>':
+  '<div class="viewer-note">'+safe(m.note||m.title)+'</div>';
+ $('viewerHost').innerHTML='<div class="photo-viewer" role="dialog" aria-modal="true" aria-label="Xem kỷ niệm">'+
+ '<div class="viewer-top"><button class="viewer-close" onclick="closeViewer()" aria-label="Đóng">✕</button><span class="viewer-index">'+(index+1)+' / '+ids.length+'</span><button onclick="viewerDelete()" aria-label="Xóa kỷ niệm">🗑</button></div>'+
+ '<div class="viewer-main" id="viewerMain" ontouchstart="viewerTouchStart(event)" ontouchend="viewerTouchEnd(event)">'+media+'</div>'+
+ '<div class="viewer-bottom"><button onclick="stepViewer(-1)" aria-label="Ảnh trước" '+(index===0?'disabled':'')+'>‹</button><div class="viewer-caption"><b>'+safe(m.title)+'</b><small>'+safe(m.note||m.date||'')+'</small></div><button onclick="stepViewer(1)" aria-label="Ảnh sau" '+(index>=ids.length-1?'disabled':'')+'>›</button></div></div>';
+}
+function viewerTouchStart(e){if(e.touches.length===1)viewerTouchX=e.touches[0].clientX}
+function viewerTouchEnd(e){if(viewerTouchX===null||e.changedTouches.length!==1)return;const dx=e.changedTouches[0].clientX-viewerTouchX;viewerTouchX=null;if(Math.abs(dx)>65)stepViewer(dx<0?1:-1)}
+function viewerDelete(){if(!viewedMemoryId||!confirm('Chuyển kỷ niệm này vào Thùng rác?'))return;const id=viewedMemoryId;closeViewer();trashMemories([id])}
 
 function showUndo(count){
  const e=$('toast');e.classList.remove('hidden');e.replaceChildren();
@@ -489,6 +538,6 @@ function deleteAlbum(){const a=current();if(!a||!confirm('Chuyển album này v�
 function restoreAlbum(id){const i=db.albumTrash.findIndex(x=>x.album.id===id);if(i<0)return;const x=db.albumTrash.splice(i,1)[0];db.albums.unshift(x.album);save();render();notify('Đã khôi phục album')}
 function permanentlyDeleteAlbum(id){if(!confirm('Xóa vĩnh viễn album này? Ảnh/video gốc vẫn được giữ.'))return;db.albumTrash=db.albumTrash.filter(x=>x.album.id!==id);save();render();notify('Đã xóa album vĩnh viễn')}
 function shareAlbum(){notify('Tính năng chia sẻ sẽ có trong phiên bản sau; album hiện chỉ lưu trên máy này.')}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').classList.contains('hidden'))closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(viewedMemoryId)closeViewer();else if(!$('modal').classList.contains('hidden'))closeModal()}else if(viewedMemoryId&&e.key==='ArrowRight')stepViewer(1);else if(viewedMemoryId&&e.key==='ArrowLeft')stepViewer(-1)});
 hydrateMedia();
 </script></body></html>
