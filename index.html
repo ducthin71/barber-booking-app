@@ -511,35 +511,97 @@ if(view==='me')html='<section class="section"><button class="back" onclick="navi
 if(view==='trash')html=trashView();
 if(view==='chronicle')html=renderChronicle();if(view==='chronicle-manage')html=renderChronicleManage();if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();if(view==='editor')html=renderEditor();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures();if(view==='wizard'&&wizard.step===2)attachLibraryGestures('wizardGrid');if(view==='album'||view==='chronicle')BookReader.mount()}
 function filterMemories(q){$('memoryGrid').innerHTML=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(q.toLowerCase())).map(memoryCard).join('')}
-function startMemory(){uploadOrigin=view;mediaValue='';mediaKind='photo';pendingFiles=[];$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Lưu một kỷ niệm</h2><p class="muted">Chỉ cần chọn loại nội dung và lưu. Tên, ghi chú và album đều không bắt buộc.</p><div class="row"><button class="chip selected" onclick="setKind(\'photo\',this)">📷 Ảnh</button><button class="chip" onclick="setKind(\'video\',this)">🎬 Video</button><button class="chip" onclick="setKind(\'note\',this)">📝 Ghi chú</button></div><div id="upload"><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div></div><p id="uploadHint" class="muted">Chọn ảnh hoặc video. Có thể chọn nhiều tệp cùng lúc.</p><label class="label" for="memDate">Ngày diễn ra kỷ niệm</label><input class="field" id="memDate" type="date" value="'+isoDay(new Date())+'"><label class="label" for="memEvent">Tên sự kiện (nếu có)</label><input class="field" id="memEvent" maxlength="80" placeholder="Ví dụ: Đi chơi Tết, Valentine 2026"><p class="muted" style="margin-top:-10px">Tên sự kiện giúp cuốn sách tự nhóm ảnh vào đúng chương.</p><label class="label">Tên (không bắt buộc)</label><input class="field" id="memTitle" placeholder="Khoảnh khắc của tôi"><label class="label">Ghi chú (không bắt buộc)</label><textarea class="field" id="memNote" rows="3" placeholder="Bạn muốn nhớ điều gì?"></textarea><button class="btn primary" style="width:100%" id="saveMemoryButton" onclick="saveMemory()">Lưu vào bộ sưu tập</button></div>'}
-function setKind(k,b){mediaKind=k;pendingFiles=[];document.querySelectorAll('.sheet .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');$('upload').innerHTML=k==='note'?'':'<input class="field" type="file" multiple accept="'+(k==='video'?'video/*':'image/*')+'" onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div><p class="muted">Chọn nhiều tệp cùng lúc. Ảnh và video được lưu trên thiết bị.</p>'}
+
+function startMemory(){
+ uploadOrigin=view;mediaValue='';mediaKind='photo';pendingFiles=[];
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet quick-capture">'+
+ '<button class="back" onclick="closeModal()">✕ Đóng</button>'+
+ '<div class="eyebrow">CHỈ CẦN LƯU, KỶ NIỆM SẼ KỂ CHUYỆN</div>'+
+ '<h2 style="font:29px/1.2 Georgia,serif;margin:10px 0">Lưu một khoảnh khắc ♡</h2>'+
+ '<p class="muted">Chọn nhiều ảnh hoặc video cùng lúc. Bạn không cần đặt tên, chọn phong cách hay tự làm album.</p>'+
+ '<div class="row"><button class="chip selected" onclick="setKind(&quot;photo&quot;,this)">📷 Ảnh / video</button>'+
+ '<button class="chip" onclick="setKind(&quot;note&quot;,this)">✎ Ghi chú</button></div>'+
+ '<div class="quick-upload-zone" id="upload"><strong>＋ Chọn ảnh / video</strong>'+
+ '<small>Bạn có thể chọn 1 ảnh để bắt đầu, hoặc chọn nhiều ảnh từ cùng chuyến đi.</small>'+
+ '<input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)">'+
+ '<div id="uploadPreview"></div></div>'+
+ '<p id="uploadHint" class="capture-file-notice">Chưa chọn ảnh. Sau khi lưu, cuốn sách sẽ tự thêm trang mới.</p>'+
+ '<details class="capture-detail-toggle" id="captureDetails"><summary>✎ Thêm ngày, sự kiện hoặc lời nhắn (tuỳ chọn)</summary>'+
+ '<p>Ngày để trống: ứng dụng thử dùng ngày sửa tệp, nếu không có sẽ dùng hôm nay. Đây không nhất thiết là ngày chụp, bạn có thể sửa lại trong Thư viện.</p>'+
+ '<label class="label" for="memDate">Ngày xảy ra</label><input class="field" type="date" id="memDate">'+
+ '<label class="label" for="memEvent">Tên sự kiện</label><input class="field" id="memEvent" maxlength="80" placeholder="Tết sum vầy, Đà Lạt 2026…">'+
+ '<label class="label" for="memTitle">Tên khoảnh khắc</label><input class="field" id="memTitle" maxlength="120" placeholder="Không bắt buộc">'+
+ '<label class="label" for="memNote">Một dòng muốn nhớ</label><textarea class="field" id="memNote" maxlength="1200" rows="3" placeholder="Một chi tiết khiến ngày ấy đáng nhớ…"></textarea></details>'+
+ '<button class="btn primary" style="width:100%" id="saveMemoryButton" onclick="saveMemory()">Lưu và xem trong cuốn sách →</button>'+
+ '<div class="capture-privacy">🔒 Ảnh/video đang được lưu trên trình duyệt này. Chưa có đồng bộ đám mây; hãy sao lưu trong Cài đặt để tránh mất dữ liệu.</div>'+
+ '</div>';
+}
+function setKind(kind,button){
+ mediaKind=kind==='note'?'note':'photo';pendingFiles=[];
+ document.querySelectorAll('.quick-capture .chip').forEach(x=>x.classList.remove('selected'));
+ if(button)button.classList.add('selected');
+ const upload=$('upload'),hint=$('uploadHint'),details=$('captureDetails'),saveButton=$('saveMemoryButton');
+ if(upload){
+  upload.style.display=mediaKind==='note'?'none':'';
+  if(mediaKind!=='note')upload.innerHTML='<strong>＋ Chọn ảnh / video</strong><small>Chọn nhiều ảnh/video cùng lúc để tạo câu chuyện.</small><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview"></div>';
+ }
+ if(details&&mediaKind==='note')details.open=true;
+ if(hint)hint.textContent=mediaKind==='note'?'Hãy nhập một vài chữ vào phần Ghi chú.':'Chưa chọn ảnh hoặc video nào.';
+ if(saveButton)saveButton.textContent=mediaKind==='note'?'Lưu ghi chú và xem trong sách →':'Lưu và xem trong cuốn sách →';
+}
 function readMedia(e){
  pendingFiles=Array.from(e.target.files||[]).filter(f=>f.type.startsWith('image/')||f.type.startsWith('video/'));
  const preview=$('uploadPreview'),hint=$('uploadHint');
- if(preview)preview.innerHTML=pendingFiles.map(f=>'<div class="notice" style="font-size:12px">'+(f.type.startsWith('video/')?'🎬 ':'🖼️ ')+safe(f.name)+'</div>').join('');
- if(hint)hint.textContent=pendingFiles.length?'Đã chọn '+pendingFiles.length+' tệp. Nhấn Lưu để thêm vào Thư viện.':'Chưa chọn ảnh/video nào.';
+ if(preview)preview.innerHTML=pendingFiles.slice(0,8).map(f=>'<div class="notice" style="font-size:12px;margin:5px 0">'+(f.type.startsWith('video/')?'🎬 ':'📷 ')+safe(f.name)+'</div>').join('')+(pendingFiles.length>8?'<small>Và '+(pendingFiles.length-8)+' tệp khác…</small>':'');
+ if(hint)hint.textContent=pendingFiles.length?'Đã chọn '+pendingFiles.length+' tệp. Chỉ cần bấm Lưu; kiểm tra lại ngày trong Thư viện nếu ảnh được sao chép từ thiết bị khác.':'Chưa chọn ảnh hoặc video nào.';
+}
+function validEventDay(iso){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return false;
+ const d=new Date(iso+'T12:00:00');return !isNaN(d.getTime())&&isoDay(d)===iso;
 }
 async function saveMemory(){
  if(uploadBusy)return;
- const title=$('memTitle').value.trim(),note=$('memNote').value.trim(),eventDate=$('memDate')?.value||isoDay(new Date()),eventName=$('memEvent')?.value.trim().slice(0,80)||'',createdAt=new Date().toISOString(),date=new Date(eventDate+'T12:00:00').toLocaleDateString('vi-VN');
+ const title=$('memTitle')?.value.trim()||'',note=$('memNote')?.value.trim()||'';
+ const dateInput=$('memDate')?.value||'',eventName=$('memEvent')?.value.trim().slice(0,80)||'';
  const files=mediaKind==='note'?[]:pendingFiles;
- if(mediaKind!=='note'&&!files.length){notify('Bạn chưa chọn ảnh hoặc video. Hãy chọn tệp trước khi lưu.');return}
- if(mediaKind==='note'&&!title&&!note){notify('Hãy nhập nội dung hoặc tên cho ghi chú.');return}
- uploadBusy=true;const b=$('saveMemoryButton');if(b){b.disabled=true;b.textContent='Đang lưu…'}
- let completed=0,failed=0;
- if(mediaKind==='note'){db.memories.unshift({id:'m'+Date.now()+'n',kind:'note',title:title||'Ghi chú',note,media:'',date,eventDate,eventName,createdAt});completed++}
- else for(let n=0;n<files.length;n++){
-  const file=files[n],id='m'+Date.now()+'-'+n+'-'+Math.random().toString(36).slice(2,6);
-  try{await putMedia(id,file);db.memories.unshift({id,mediaId:id,kind:file.type.startsWith('video/')?'video':'photo',title:title||(files.length>1?file.name:'Một kỷ niệm'),note,date,eventDate,eventName,createdAt});mediaURLs[id]=URL.createObjectURL(file);completed++}catch(e){console.error(e);failed++}
+ if(mediaKind!=='note'&&!files.length){notify('Hãy chọn ít nhất một ảnh/video để lưu.');return}
+ if(mediaKind==='note'&&!title&&!note){notify('Viết một dòng ghi chú trước khi lưu nhé.');return}
+ if(dateInput&&!validEventDay(dateInput)){notify('Ngày kỷ niệm chưa hợp lệ.');return}
+ uploadBusy=true;
+ const button=$('saveMemoryButton');if(button){button.disabled=true;button.textContent='Đang lưu kỷ niệm…'}
+ const createdAt=new Date().toISOString(),savedIds=[];
+ let failed=0;
+ if(mediaKind==='note'){
+  const day=dateInput||isoDay(new Date()),id='m'+Date.now()+'n';
+  db.memories.unshift({id,kind:'note',title:title||'Ghi chú',note,media:'',date:new Date(day+'T12:00:00').toLocaleDateString('vi-VN'),eventDate:day,eventName,createdAt,dateSource:dateInput?'manual':'today'});
+  savedIds.push(id);
+ }else{
+  for(let n=0;n<files.length;n++){
+   const file=files[n],id='m'+Date.now()+'-'+n+'-'+Math.random().toString(36).slice(2,6);
+   try{
+    await putMedia(id,file);
+    const suggestion=KyniemExperience.fileDate(file,new Date()),day=dateInput||suggestion.day;
+    db.memories.unshift({id,mediaId:id,kind:file.type.startsWith('video/')?'video':'photo',title:title||(files.length>1?file.name:'Một kỷ niệm'),note,
+      date:new Date(day+'T12:00:00').toLocaleDateString('vi-VN'),eventDate:day,eventName,createdAt,dateSource:dateInput?'manual':suggestion.source});
+    mediaURLs[id]=URL.createObjectURL(file);
+    savedIds.push(id);
+   }catch(e){console.error('Không lưu được tệp',e);failed++}
+  }
  }
  save();uploadBusy=false;
- if(b){b.disabled=false;b.textContent='Lưu vào bộ sưu tập'}
- if(completed){
-  closeModal();
-  if(uploadOrigin==='wizard'){wizard.step=2;render()}else navigate('memories');
-  notify('Đã lưu '+completed+' kỷ niệm'+(failed?' · '+failed+' tệp lỗi':''));
- }else notify('Không lưu được tệp. Có thể bộ nhớ đã đầy; hãy kiểm tra dung lượng.');
+ if(button){button.disabled=false;button.textContent='Lưu và xem trong cuốn sách →'}
+ if(!savedIds.length){notify('Chưa lưu được tệp nào. Hãy kiểm tra dung lượng hoặc thử lại.');return}
+ closeModal();
+ if(uploadOrigin==='wizard'){wizard.step=2;render()}
+ else{
+  const ids=new Set(savedIds),pages=chronicleModel().pages;
+  let target=0;for(let i=0;i<pages.length;i++)if(pages[i].type==='chronicle-story'&&(pages[i].items||[]).some(id=>ids.has(id)))target=i;
+  chroniclePage=target;navigate('chronicle');
+ }
+ notify('Đã lưu '+savedIds.length+' kỷ niệm vào cuốn sách'+(failed?' · '+failed+' tệp chưa lưu được':'')+' ♡');
 }
+
 function closeModal(){$('modal').classList.add('hidden')}
 
 let viewedMemoryId=null,viewerTouchX=null;
