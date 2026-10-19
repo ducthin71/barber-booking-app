@@ -101,7 +101,7 @@ function turn(direction){
  S.raf=requestAnimationFrame(()=>{f.leaf.getBoundingClientRect();finishFlip(f,true)});
 }
 function onDown(e){
- if(S.busy||S.modal||e.target.closest('[data-book-photo],button,a,input,textarea,select,video'))return;
+ if(S.busy||S.modal||e.target.closest('button,a,input,textarea,select,video'))return;
  S.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};
 }
 function onMove(e){
@@ -147,6 +147,7 @@ function onKey(e){
 function mount(){
  clearFlip();S.busy=false;S.drag=null;S.pointer=null;
  const stage=$b('openbookStage');if(!stage)return;
+ stage.addEventListener('dragstart',e=>e.preventDefault());
  stage.addEventListener('pointerdown',onDown);
  stage.addEventListener('pointermove',onMove);
  stage.addEventListener('pointerup',onUp);
