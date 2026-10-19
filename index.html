@@ -117,6 +117,25 @@
 .sheet{max-height:calc(100dvh - 30px);overflow-y:auto;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ba7a80;outline-offset:3px}
+
+/* Layout adapts to the actual number of distinct memories. */
+.memory-composition.count-0 .slice-title{top:30%;left:8%;text-align:center;width:84%;font-size:41px}
+.memory-composition.count-0 .slice-caption{bottom:19%;left:12%;width:76%;max-width:none;text-align:center}
+.memory-composition.count-0 .slice-tape{display:none}
+.memory-composition.count-1 .photo-layer:nth-of-type(3){left:10%;top:20%;width:80%;height:58%;transform:rotate(-3deg);border-width:9px}
+.memory-composition.count-1 .slice-title{left:7%;top:6%;font-size:36px}
+.memory-composition.count-1 .slice-caption{bottom:4%;left:10%;right:10%;max-width:none;font-size:13px}
+.memory-composition.count-1 .slice-decor{right:5%;bottom:12%}
+.memory-composition.count-2 .photo-layer:nth-of-type(3){left:5%;top:20%;width:52%;height:52%;transform:rotate(-5deg)}
+.memory-composition.count-2 .photo-layer:nth-of-type(4){right:5%;left:auto;top:29%;width:49%;height:52%;transform:rotate(6deg)}
+.memory-composition.count-2 .slice-title{left:7%;top:5%;font-size:35px}
+.memory-composition.count-2 .slice-caption{bottom:4%;left:9%;right:9%;max-width:none;text-align:left;font-size:13px}
+.memory-composition.count-3 .photo-layer:nth-of-type(3){left:4%;top:14%;width:51%;height:43%;transform:rotate(-6deg)}
+.memory-composition.count-3 .photo-layer:nth-of-type(4){right:5%;left:auto;top:14%;width:39%;height:35%;transform:rotate(5deg)}
+.memory-composition.count-3 .photo-layer:nth-of-type(5){left:20%;top:52%;width:68%;height:33%;transform:rotate(4deg)}
+.memory-composition.count-3 .slice-title{left:8%;bottom:5%;top:auto;font-size:33px}
+.memory-composition.count-3 .slice-caption{display:none}
+.home-v3 .action,.home-v3 .slice-header button{min-height:44px}
 </style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false;
@@ -213,8 +232,8 @@ function renderComposition(a,p,i,options={}){
  const media=sliceItems(a,p),demo=options.demo||0;
  const title=p.type==='cover'?(p.title||a.title):p.type==='ending'?'Thương nhớ đong đầy':(p.title||a.title);
  const caption=p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
- let photos='';for(let n=0;n<4;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n%Math.max(1,media.length)],n,demo)+'</div>';
- return '<div class="memory-composition variant-'+variant+(options.read?' read-mode':'')+'">'+
+ let photos='';const mediaCount=demo?4:media.length;for(let n=0;n<mediaCount;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n],n,demo)+'</div>';
+ return '<div class="memory-composition variant-'+variant+' count-'+mediaCount+(options.read?' read-mode':'')+'">'+
  '<div class="slice-texture"></div><div class="slice-kicker">'+safe(theme[0]).toUpperCase()+' · KỶ NIỆM</div>'+
  photos+'<div class="slice-tape" aria-hidden="true"></div>'+
  '<h2 class="slice-title">'+safe(title)+'</h2><div class="slice-caption">'+safe(caption.slice(0,160))+'</div>'+
@@ -328,10 +347,10 @@ async function permanentlyDeleteTrash(id){
 function trashView(){return '<section class="section"><button class="back" onclick="navigate(\'me\')">← Của tôi</button><h1 class="title">Thùng rác</h1><p class="muted">Bạn có thể khôi phục kỷ niệm đã xóa, hoặc xóa vĩnh viễn khi chắc chắn không cần nữa.</p>'+
  (db.trash.length?db.trash.map(e=>'<div class="trash-item"><div class="trash-desc"><b>'+safe(e.memory.title)+'</b><small>'+safe(e.memory.date)+' · '+safe(e.memory.kind)+'</small></div><button onclick="restoreTrash(\''+e.memory.id+'\')">Khôi phục</button><button onclick="permanentlyDeleteTrash(\''+e.memory.id+'\')">Xóa hẳn</button></div>').join(''):'<div class="library-empty">Thùng rác đang trống.</div>')+'</section>'}
 async function deleteMemory(id){const m=db.memories.find(x=>x.id===id);if(!m||!confirm('Chuyển kỷ niệm này vào Thùng rác? Bạn có thể khôi phục sau.'))return;closeModal();trashMemories([id])}
-function startAlbum(){wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''};wizardSearch='';navigate('wizard')}
+function startAlbum(){wizard={step:1,title:'',theme:'auto',style:'scrapbook',selected:[],prompt:''};wizardSearch='';navigate('wizard')}
 function renderWizard(){let w=wizard,body='';if(w.step===1)body='<label class="label">Mô tả câu chuyện bạn muốn thiết kế</label><textarea class="field" style="min-height:180px;line-height:1.6" placeholder="Ví dụ: Album Tết sum vầy, ấm áp, màu đỏ vàng, bố cục tạp chí, có lời nhắn..." oninput="wizard.prompt=this.value">'+safe(w.prompt||'')+'</textarea><p class="muted">Gợi ý nhanh (không bắt buộc)</p><div class="row">'+Object.entries(themes).map(([id,t])=>'<button style="font-size:12px;flex:0 0 auto;padding:9px;background:#fff;color:#776c63;border-color:#e6d8cb" class="chip" onclick="wizard.theme=\''+id+'\';wizard.prompt+=(wizard.prompt?\', \':\'\')+\'Chủ đề '+t[0]+'\';render()">'+t[2]+' '+t[0]+'</button>').join('')+'</div><div class="row" style="margin-top:8px">'+Object.entries(styles).map(([id,t])=>'<button style="font-size:12px;flex:0 0 auto;padding:9px;background:#fff;color:#776c63;border-color:#e6d8cb" class="chip" onclick="wizard.style=\''+id+'\';wizard.prompt+=(wizard.prompt?\', \':\'\')+\'phong cách '+t+'\';render()">'+t+'</button>').join('')+'</div><label class="label" style="display:block;margin-top:18px">Tên album (không bắt buộc)</label><input id="albumTitle" class="field" placeholder="Tên album" value="'+safe(w.title)+'" oninput="wizard.title=this.value">';
 if(w.step===2)body='<h2>Chọn kỷ niệm để kể</h2><button class="btn" style="margin-bottom:12px" onclick="startMemory()">＋ Thêm ảnh/video mới</button><p class="muted">Chạm vào ảnh, video hoặc ghi chú để thêm vào album. Có thể chọn nhiều mục và thay đổi kích thước ảnh như trong Thư viện.</p><div class="wizard-library"><div class="wizard-summary"><strong id="wizardCount">'+w.selected.length+' đã chọn</strong><button class="library-round" id="wizardAllButton" onclick="toggleAllWizard()">Chọn tất cả</button></div><input class="field library-search" id="wizardSearch" placeholder="⌕ Tìm kỷ niệm" value="'+safe(wizardSearch)+'" oninput="wizardSearch=this.value;updateWizardGrid()"><div class="wizard-tools"><span class="zoom-caption">Thu nhỏ</span><input id="wizardSlider" type="range" min="2" max="7" value="'+libraryCols+'" step="1" aria-label="Thay đổi kích thước ảnh" oninput="changeLibraryCols(this.value,\'wizardGrid\')"><span id="wizardColsLabel" class="zoom-caption">'+libraryCols+' cột</span></div><div class="library-grid" id="wizardGrid" style="--library-cols:'+libraryCols+'">'+wizardTiles()+'</div><div class="wizard-note">Ảnh/video được chọn từ kho kỷ niệm; bản gốc vẫn được giữ nguyên.</div></div>';
-if(w.step===3)body='<h2>Chuẩn bị dàn trang ✦</h2><p class="muted">Chủ đề: '+themes[w.theme][0]+' · '+styles[w.style]+' · '+w.selected.length+' kỷ niệm</p><div class="notice">App hiện dàn trang theo các mẫu collage có sẵn, chưa dùng AI thật để hiểu mô tả. Bạn có thể xem trước và đổi bố cục.</div><button class="btn primary" style="width:100%;margin-top:18px" onclick="generateAlbum()">✦ Tạo bản xem trước</button>';
+if(w.step===3)body='<h2>Chuẩn bị dàn trang ✦</h2><p class="muted">Chủ đề: '+(themes[w.theme]||themes.tet)[0]+' · '+styles[w.style]+' · '+w.selected.length+' kỷ niệm</p><div class="notice">App hiện dàn trang theo các mẫu collage có sẵn, chưa dùng AI thật để hiểu mô tả. Bạn có thể xem trước và đổi bố cục.</div><button class="btn primary" style="width:100%;margin-top:18px" onclick="generateAlbum()">✦ Tạo bản xem trước</button>';
 return '<section class="section"><button class="back" onclick="navigate(\'albums\')">← Album</button><div class="eyebrow">TẠO ALBUM</div><h1 class="title">Kể câu chuyện của bạn</h1><div class="step">Bước '+w.step+'/3 · '+(['','Chủ đề & phong cách','Chọn nội dung','Dàn trang'][w.step])+'</div>'+body+'<div class="row" style="margin-top:25px">'+(w.step>1?'<button class="btn" onclick="wizard.step--;render()">← Quay lại</button>':'')+(w.step<3?'<button class="btn primary" onclick="wizard.step++;render()">Tiếp tục →</button>':'')+'</div></section>'}
 function visibleWizardMemories(){return db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(wizardSearch.toLowerCase()))}
 function wizardTile(m){
@@ -363,6 +382,7 @@ function toggleAllWizard(){
  updateWizardGrid();
 }
 
+function inferAlbumTheme(){if(themes[wizard.theme])return wizard.theme;const q=(wizard.prompt+' '+wizard.title).toLowerCase();if(/du lịch|đà lạt|biển|trip|travel|chuyến đi/.test(q))return 'travel';if(/yêu|cưới|wedding|đôi|hẹn hò|love/.test(q))return 'love';if(/gia đình|bố mẹ|ông bà|family|con cái/.test(q))return 'family';return 'tet'}
 function generateAlbum(){
  if(!wizard.selected.length){wizard.step=2;render();notify('Hãy chọn ít nhất một kỷ niệm để tạo album.');return}
  const selected=wizard.selected.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);
@@ -373,7 +393,7 @@ function generateAlbum(){
   pages.push({title:group[0]?.title||'Khoảnh khắc đáng nhớ',type:'collage',items:group.map(m=>m.id)});
  }
  pages.push({title:'Những điều còn ở lại ♡',type:'ending',items:selected.slice(-4).map(m=>m.id)});
- const a={id:'a'+Date.now(),title:name,prompt:wizard.prompt,theme:wizard.theme,style:wizard.style,items:wizard.selected.slice(),pages,accepted:false};
+ const a={id:'a'+Date.now(),title:name,prompt:wizard.prompt,theme:inferAlbumTheme(),style:wizard.style,items:wizard.selected.slice(),pages,accepted:false};
  db.albums.unshift(a);save();openAlbum(a.id);notify('Đã tạo các trang collage mô phỏng');
 }
 let albumReturnView='albums';
