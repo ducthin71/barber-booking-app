@@ -322,7 +322,7 @@ function sliceMedia(m,index,demo,interactive=false,readerPreview=false){
  if(!src)return '<span style="display:grid;place-items:center;height:100%;font-size:30px">'+(m.kind==='note'?'✎':'📷')+'</span>';
  if(m.kind==='video'&&readerPreview)return '<span class="media-video-placeholder">▶<small>Chạm để xem video</small></span>';
  if(m.kind==='video')return '<video '+(interactive?'controls ':'muted ')+'playsinline preload="metadata" src="'+src+'"></video>'+(interactive?'':'<span class="play-mark">▶ Video</span>');
- return '<img loading="'+(readerPreview?'eager':'lazy')+'" decoding="async" alt="'+safe(m.title||'Kỷ niệm')+'" src="'+src+'">';
+ return '<img '+(readerPreview?'draggable="false" ':'')+'loading="'+(readerPreview?'eager':'lazy')+'" decoding="async" alt="'+safe(m.title||'Kỷ niệm')+'" src="'+src+'">';
 }
 function renderComposition(a,p,i,options={}){
  const theme=themes[a.theme]||themes.tet,variant=options.variant??(i%5);
