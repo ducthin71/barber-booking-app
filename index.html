@@ -136,6 +136,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .memory-composition.count-3 .slice-title{left:8%;bottom:5%;top:auto;font-size:33px}
 .memory-composition.count-3 .slice-caption{display:none}
 .home-v3 .action,.home-v3 .slice-header button{min-height:44px}
+.memory-composition.read-mode .photo-layer video{pointer-events:auto;position:relative;z-index:3}
+.memory-composition.read-mode .photo-layer video::-webkit-media-controls-panel{display:flex}
 </style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false;
@@ -219,12 +221,12 @@ let homeOrder=[];
 function shuffled(arr){const x=arr.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
 function refreshSlices(){homeOrder=[];render();notify('Đã làm mới những lát kỷ niệm ♡')}
 function sliceItems(a,p){const ids=[...(p.items||[]),...(a.items||[])];const seen=new Set();const matches=[];for(const id of ids){if(seen.has(id))continue;seen.add(id);const m=db.memories.find(x=>x.id===id);if(m)matches.push(m)}return matches.slice(0,4)}
-function sliceMedia(m,index,demo){
+function sliceMedia(m,index,demo,interactive=false){
  if(demo)return '<img loading="lazy" alt="Hình minh họa lát cắt" src="'+illustrativePhotos[(index+demo*2)%illustrativePhotos.length]+'">';
  if(!m)return '<span aria-hidden="true" style="display:grid;place-items:center;height:100%;font-size:35px">✿</span>';
  const src=mediaURLs[m.id]||m.media;
  if(!src)return '<span style="display:grid;place-items:center;height:100%;font-size:30px">'+(m.kind==='note'?'✎':'📷')+'</span>';
- if(m.kind==='video')return '<video muted playsinline preload="metadata" src="'+src+'"></video><span class="play-mark">▶ Video</span>';
+ if(m.kind==='video')return '<video '+(interactive?'controls ':'muted ')+'playsinline preload="metadata" src="'+src+'"></video>'+(interactive?'':'<span class="play-mark">▶ Video</span>');
  return '<img loading="lazy" alt="'+safe(m.title||'Kỷ niệm')+'" src="'+src+'">';
 }
 function renderComposition(a,p,i,options={}){
@@ -232,7 +234,7 @@ function renderComposition(a,p,i,options={}){
  const media=sliceItems(a,p),demo=options.demo||0;
  const title=p.type==='cover'?(p.title||a.title):p.type==='ending'?'Thương nhớ đong đầy':(p.title||a.title);
  const caption=p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
- let photos='';const mediaCount=demo?4:media.length;for(let n=0;n<mediaCount;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n],n,demo)+'</div>';
+ let photos='';const mediaCount=demo?4:media.length;for(let n=0;n<mediaCount;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n],n,demo,!!options.read)+'</div>';
  return '<div class="memory-composition variant-'+variant+' count-'+mediaCount+(options.read?' read-mode':'')+'">'+
  '<div class="slice-texture"></div><div class="slice-kicker">'+safe(theme[0]).toUpperCase()+' · KỶ NIỆM</div>'+
  photos+'<div class="slice-tape" aria-hidden="true"></div>'+
@@ -319,7 +321,7 @@ function trashMemories(ids){
  db.memories=db.memories.filter(m=>!set.has(m.id));
  for(const a of db.albums){
   a.items=(a.items||[]).filter(id=>!set.has(id));
-  a.pages=(a.pages||[]).filter(p=>!(p.items||[]).some(id=>set.has(id)));
+  a.pages=(a.pages||[]).map(p=>({...p,items:(p.items||[]).filter(id=>!set.has(id))}));
  }
  save();render();showUndo(count);
 }
@@ -331,7 +333,7 @@ function restoreTrash(id){
   const a=db.albums.find(x=>x.id===ref.albumId);if(!a)continue;
   a.items=a.items||[];a.pages=a.pages||[];
   for(const pos of ref.indices){if(!a.items.includes(id))a.items.splice(Math.min(pos,a.items.length),0,id)}
-  for(const p of ref.pages){if(!a.pages.some(x=>(x.items||[]).includes(id)))a.pages.splice(Math.min(p.i,a.pages.length),0,p.page)}
+  for(const p of ref.pages){const currentPage=a.pages[p.i];if(currentPage){currentPage.items=currentPage.items||[];for(let n=0;n<p.page.items.length;n++)if(p.page.items[n]===id&&!currentPage.items.includes(id))currentPage.items.splice(Math.min(n,currentPage.items.length),0,id)}else{const recovered={...p.page,items:(p.page.items||[]).filter(x=>x===id||db.memories.some(m=>m.id===x))};a.pages.splice(Math.min(p.i,a.pages.length),0,recovered)}}
  }
  save();render();notify('Đã khôi phục kỷ niệm');
 }
