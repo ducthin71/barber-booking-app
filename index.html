@@ -314,7 +314,7 @@ function trashMemories(ids){
  for(const id of set){
   const index=db.memories.findIndex(m=>m.id===id);if(index<0)continue;
   const memory=db.memories[index];
-  const refs=db.albums.map(a=>({albumId:a.id,indices:(a.items||[]).flatMap((x,i)=>x===id?[i]:[]),pages:(a.pages||[]).flatMap((p,i)=>(p.items||[]).includes(id)?[{i,page:structuredClone(p)}]:[])})).filter(x=>x.indices.length||x.pages.length);
+  const refs=db.albums.map(a=>({albumId:a.id,indices:(a.items||[]).flatMap((x,i)=>x===id?[i]:[]),pages:(a.pages||[]).flatMap((p,i)=>(p.items||[]).includes(id)?[{i,page:JSON.parse(JSON.stringify(p))}]:[])})).filter(x=>x.indices.length||x.pages.length);
   db.trash.unshift({memory,index,refs,deletedAt:Date.now()});count++;
  }
  if(!count)return;
