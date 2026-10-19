@@ -781,6 +781,56 @@ function chronicleContents(){
  '<div class="chronicle-contents-list"><button onclick="chronicleJumpTo(0)"><b>Bìa cuốn sách</b><small>Trang 1 ↗</small></button>'+entries+'</div></div>';
 }
 
+
+function openChronicleManage(){navigate('chronicle-manage')}
+function renderChronicleManage(){
+ const model=chronicleModel(),hidden=chronicleSettings().excludedIds;
+ const blocks=model.chapters.map(ch=>{
+  const items=ch.items.map(m=>'<button type="button" onclick="excludeChronicleMemory(\''+m.id+'\')" title="Ẩn khỏi cuốn kỷ niệm">'+safe(m.title||'Một kỷ niệm')+' ×</button>').join('');
+  return '<div class="chronicle-manage-event"><h3>'+safe(ch.title||ch.rawTitle)+'</h3><small>'+safe(vietnamMonth(+ch.monthKey.slice(5)))+' '+ch.monthKey.slice(0,4)+' · '+ch.items.length+' kỷ niệm · '+safe(ch.mood)+'</small>'+
+  '<div class="event-items">'+items+'</div><button class="btn" style="margin-top:12px;width:100%" onclick="editChronicleChapter(\''+ch.key+'\')">✎ Tên chương · Mood · Phong cách</button></div>';
+ }).join('');
+ const excluded=hidden.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);
+ return '<section class="section"><button class="back" onclick="navigate(\'chronicle\')">← Về cuốn sách</button><div class="eyebrow">TÙY CHỈNH CUỐN KỶ NIỆM</div><h1 class="title">Những chương đời</h1>'+
+ '<p class="muted">Cuốn sách tự cập nhật khi bạn lưu kỷ niệm mới. Đổi tên chương, chọn cảm xúc hoặc ẩn những khoảnh khắc riêng tư mà không xóa ảnh gốc.</p>'+
+ '<div class="panel-warning">Mốc thời gian lấy từ ngày kỷ niệm. Nếu kỷ niệm nằm sai tháng hoặc chương, hãy sửa ngày và tên sự kiện trong Thư viện.</div>'+
+ '<h2 style="font:24px Georgia,serif">Các chương ('+model.chapters.length+')</h2>'+
+ '<div class="chronicle-manage-list">'+(blocks||'<div class="chronicle-empty">Chưa có chương nào. Hãy lưu kỷ niệm đầu tiên vào Thư viện. ♡</div>')+'</div>'+
+ '<h2 style="font:23px Georgia,serif;margin-top:27px">Không đưa vào sách ('+excluded.length+')</h2>'+
+ '<p class="muted">Ảnh vẫn còn trong Thư viện và trong các album riêng.</p>'+
+ '<div class="chronicle-manage-list">'+(excluded.map(m=>'<div class="trash-item"><div class="trash-desc"><b>'+safe(m.title)+'</b><small>'+safe(m.date||'')+'</small></div><button onclick="restoreChronicleMemory(\''+m.id+'\')">＋ Đưa lại</button></div>').join('')||'<p class="muted">Chưa có kỷ niệm bị ẩn.</p>')+'</div>'+
+ '<button class="btn primary" style="width:100%;margin:23px 0 18px" onclick="navigate(\'chronicle\')">Xem cuốn sách ↗</button></section>';
+}
+function excludeChronicleMemory(id){
+ const m=db.memories.find(x=>x.id===id);
+ if(!m||!confirm('Ẩn "'+m.title+'" khỏi Cuốn Kỷ Niệm Của Tôi? Ảnh gốc và album riêng vẫn được giữ.'))return;
+ const c=chronicleSettings();if(!c.excludedIds.includes(id))c.excludedIds.push(id);
+ save();render();notify('Đã ẩn khỏi cuốn sách, ảnh gốc vẫn được giữ');
+}
+function restoreChronicleMemory(id){
+ const c=chronicleSettings();c.excludedIds=c.excludedIds.filter(x=>x!==id);
+ save();render();notify('Kỷ niệm đã trở lại cuốn sách');
+}
+function editChronicleChapter(key){
+ const c=chronicleModel().chapters.find(x=>x.key===key);if(!c)return;
+ const themeOptions=Object.entries(themes).map(([id,t])=>'<option value="'+id+'" '+(c.theme===id?'selected':'')+'>'+safe(t[0])+'</option>').join('');
+ const styleOptions=Object.entries(styles).map(([id,t])=>'<option value="'+id+'" '+(c.style===id?'selected':'')+'>'+safe(t)+'</option>').join('');
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet"><button class="back" onclick="closeModal()">✕ Đóng</button><h2>Thiết kế chương</h2>'+
+ '<p class="muted">'+safe(c.monthKey)+' · '+c.items.length+' kỷ niệm. Thay đổi sẽ áp dụng cho chương này, không ảnh hưởng chương khác.</p>'+
+ '<label class="label" for="chapterTitle">Tên chương</label><input class="field" id="chapterTitle" maxlength="90" value="'+safe(c.title||c.rawTitle)+'">'+
+ '<label class="label" for="chapterMood">Cảm xúc của chương</label><input class="field" id="chapterMood" maxlength="90" value="'+safe(c.mood)+'">'+
+ '<label class="label" for="chapterTheme">Chủ đề hình ảnh</label><select class="field" id="chapterTheme">'+themeOptions+'</select>'+
+ '<label class="label" for="chapterStyle">Phong cách bố cục</label><select class="field" id="chapterStyle">'+styleOptions+'</select>'+
+ '<button class="btn primary" style="width:100%;margin-top:12px" onclick="saveChronicleChapter(\''+key+'\')">✓ Lưu chương</button></div>';
+}
+function saveChronicleChapter(key){
+ const chapter=chronicleModel().chapters.find(x=>x.key===key);if(!chapter)return;
+ const config=chronicleSettings();
+ config.chapters[key]={title:$('chapterTitle').value.trim().slice(0,90)||chapter.rawTitle,mood:$('chapterMood').value.trim().slice(0,90)||chapter.mood,theme:themes[$('chapterTheme').value]?$('chapterTheme').value:chapter.theme,style:styles[$('chapterStyle').value]?$('chapterStyle').value:chapter.style};
+ save();closeModal();render();notify('Đã cập nhật chương');
+}
+
 function editPageText(field,value){
  const a=current();if(!a)return;const p=a.pages[activePage];p[field]=String(value||'').slice(0,300);
  a.accepted=false;save();
