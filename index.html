@@ -220,7 +220,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .memory-composition.style-minimal .slice-decor,.memory-composition.style-minimal .slice-tape{display:none}
 .memory-composition.style-minimal .photo-layer{border:2px solid #fff;box-shadow:0 4px 10px #5b43412d;transform:none}
 .memory-composition.style-scrapbook .slice-decor{filter:drop-shadow(2px 3px 2px #44222233)}
-.book-flip-layer.dragging{transition:none!important;cursor:grabbing}</style><link rel="stylesheet" href="./book-reader.css"></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="bookPhotoHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script src="./book-reader.js"></script><script>
+.book-flip-layer.dragging{transition:none!important;cursor:grabbing}</style><link rel="stylesheet" href="./book-reader.css"><link rel="stylesheet" href="./experience.css"></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="bookPhotoHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script src="./book-reader.js"></script><script src="./experience.js"></script><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false,libraryType='all',readerOrigin='albums',chroniclePage=0,bookFlipBusy=false;
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),save=()=>{try{localStorage.setItem('kyniem-correct-v1',JSON.stringify(db))}catch(e){notify('Bộ nhớ đầy: hãy dùng ảnh nhỏ hơn')}},notify=s=>{const e=$('toast');e.textContent=s;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)};
@@ -428,6 +428,63 @@ function renderChronicleCard(){
  '<div class="chronicle-card-info"><div><b>Một cuốn sách lớn lên cùng bạn</b><small>'+c.count+' kỷ niệm · '+c.chapters.length+' câu chuyện · '+c.months.length+' tháng</small></div><span>Đọc sách ↗</span></div></button>';
 }
 
+
+function openStoryForMemory(id){
+ const data=chronicleModel(),idx=data.pages.findIndex(p=>p.type==='chronicle-story'&&(p.items||[]).includes(id));
+ openChronicle(Math.max(0,idx));
+}
+function reflectMemory(id){
+ const m=db.memories.find(x=>x.id===id);
+ if(!m)return;
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet"><button class="back" onclick="closeModal()">✕ Đóng</button>'+
+ '<div class="eyebrow">THÊM MỘT DÒNG KỶ NIỆM</div><h2 style="font:26px Georgia,serif">'+safe(m.title||'Khoảnh khắc đáng nhớ')+'</h2>'+
+ '<p class="muted">Bạn muốn nhớ điều gì về ngày ấy? Không cần viết dài, một câu cũng đủ.</p>'+
+ '<textarea id="reflectionNote" class="field" rows="4" maxlength="1200" placeholder="Điều mình muốn nhớ…">'+safe(m.note||'')+'</textarea>'+
+ '<button class="btn primary" style="width:100%;margin-top:8px" onclick="saveReflection(\''+m.id+'\')">♡ Lưu lời nhắn</button></div>';
+}
+function saveReflection(id){
+ const m=db.memories.find(x=>x.id===id);
+ const field=$('reflectionNote');
+ if(!m||!field)return;
+ m.note=field.value.trim().slice(0,1200);
+ save();closeModal();render();notify('Đã lưu lời nhắn vào kỷ niệm ♡');
+}
+function homeValuePanel(){
+ if(!db.memories.length){
+  return '<div class="home-value-panel"><div class="home-value-eyebrow">✿ BẮT ĐẦU CUỐN SÁCH CỦA BẠN</div>'+
+  '<h2>Bạn không cần tự làm album.</h2>'+
+  '<p>Chỉ cần chọn vài ảnh hoặc video đáng nhớ. Kỷ Niệm sẽ sắp xếp chúng thành những trang đầu tiên của cuốn sách cuộc đời bạn.</p>'+
+  '<div class="home-first-steps"><div><span>📷</span><small>Chọn ảnh yêu thích</small></div><div><span>✦</span><small>Tự chia câu chuyện</small></div><div><span>📖</span><small>Mở sách để xem</small></div></div>'+
+  '<button class="value-primary" onclick="startMemory()">＋ Chọn ảnh đầu tiên</button>'+
+  '<small class="home-value-fineprint">Chỉ cần 1 ảnh để bắt đầu; chọn nhiều ảnh cùng lúc sẽ đẹp hơn. Kỷ niệm hiện được lưu cục bộ trên thiết bị này, chưa có đồng bộ đám mây.</small></div>';
+ }
+ const excluded=chronicleSettings().excludedIds;
+ const moment=KyniemExperience.pickMemory(db.memories,excluded,new Date());
+ if(moment){
+  const m=moment.memory,src=mediaURLs[m.id]||m.media||'';
+  const visual=m.kind==='photo'&&src?'<img loading="lazy" decoding="async" alt="'+safe(m.title||'Ảnh kỷ niệm')+'" src="'+src+'">':
+    m.kind==='video'?'<div class="note-art">▶<br>Khoảnh khắc qua video</div><span class="video-mark">Video của bạn</span>':
+    '<div class="note-art">✿<p style="font:italic 19px Georgia,serif">'+safe(m.note||m.title||'Một điều đáng nhớ')+'</p></div>';
+  const title=moment.anniversary?'Ngày này '+moment.years+' năm trước…':'Có một ngày bạn đã lưu lại…';
+  return '<div class="home-value-panel memory-revisit"><div class="home-value-eyebrow">♡ HÔM NAY MỞ LẠI MỘT KỶ NIỆM</div>'+
+   '<h2>'+title+'</h2><div class="memory-revisit-date">'+safe(KyniemExperience.dateLabel(moment.date))+'</div>'+
+   '<div class="memory-revisit-hero">'+visual+'</div>'+
+   '<h2 style="font-size:23px;margin:0">'+safe(m.title||'Một khoảnh khắc đáng nhớ')+'</h2>'+
+   (m.note?'<p style="margin:0">'+safe(m.note.slice(0,155))+'</p>':'<p style="margin:0">Một bức ảnh cũ, một câu chuyện bạn đã đi qua.</p>')+
+   '<div class="memory-revisit-actions"><button class="value-primary" onclick="openStoryForMemory(\''+m.id+'\')">📖 Đọc lại trong sách</button>'+
+   '<button class="value-secondary" onclick="reflectMemory(\''+m.id+'\')">✎ Viết thêm một dòng</button></div>'+
+   '<small class="home-value-fineprint">Chỉ chọn từ kỷ niệm bạn đã lưu và cho phép xuất hiện trong cuốn sách. Không có nội dung AI tự tạo.</small></div>';
+ }
+ const recent=db.memories.filter(m=>!excluded.includes(m.id));
+ const latest=recent[0];
+ if(!latest)return '';
+ return '<div class="home-value-panel"><div class="home-value-eyebrow">✿ CUỐN SÁCH ĐANG ĐƯỢC VIẾT TIẾP</div>'+
+  '<h2>Những trang đầu tiên đã có rồi!</h2>'+
+  '<p>Bạn đã lưu '+recent.length+' khoảnh khắc vào Cuốn Kỷ Niệm Của Tôi. Mở sách để xem câu chuyện bắt đầu như thế nào.</p>'+
+  '<button class="value-primary" onclick="openStoryForMemory(\''+latest.id+'\')">📖 Xem trang kỷ niệm mới</button></div>';
+}
+
 function homePageFeed(){
  const raw=[];
  const living=chronicleModel();for(let i=0;i<living.pages.length;i++){const p=living.pages[i];if(p.type==='chronicle-story')raw.push({a:{id:'lifebook',title:'Cuốn Kỷ Niệm Của Tôi',theme:p.theme,style:p.style,items:[],prompt:''},p,i,main:true,demo:0})}
@@ -441,10 +498,10 @@ function homePageFeed(){
  const pieces=raw.length?raw:sampleSlices();
  if(!homeOrder.length||pieces.some(x=>!homeOrder.includes(x.a.id+'-'+x.i+'-'+x.demo))||homeOrder.length!==pieces.length)homeOrder=shuffled(pieces.map(x=>x.a.id+'-'+x.i+'-'+x.demo));
  pieces.sort((a,b)=>homeOrder.indexOf(a.a.id+'-'+a.i+'-'+a.demo)-homeOrder.indexOf(b.a.id+'-'+b.i+'-'+b.demo));
- const cards=pieces.slice(0,10).map((x,n)=>'<button class="slice-card" type="button" onclick="'+(x.demo?'startAlbum()':x.main?'openChronicle('+x.i+')':!x.a.id?"detail('"+x.a.items[0]+"')":"openAlbumPage('"+x.a.id+"',"+x.i+")")+'">'+
+ const cards=pieces.slice(0,10).map((x,n)=>'<button class="slice-card" type="button" onclick="'+(x.demo?'startMemory()':x.main?'openChronicle('+x.i+')':!x.a.id?"detail('"+x.a.items[0]+"')":"openAlbumPage('"+x.a.id+"',"+x.i+")")+'">'+
  renderComposition(x.a,x.p,n,{variant:(n+x.i)%5,demo:x.demo})+
  '<div class="slice-card-caption"><b>'+safe(x.p.title)+'</b><small>'+(x.demo?'Bản mẫu minh họa':'Trang '+(x.i+1)+' · '+safe(x.a.title))+' ↗</small></div></button>').join('');
- return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="startAlbum()"><span class="emoji">✦</span><b>Tạo album</b><small>Chọn phong cách, nội dung và xem bản dàn trang</small></button></div><div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div><button class="btn" style="width:100%;margin:0 0 15px" onclick="openChronicle()">📖 Mở Cuốn Kỷ Niệm Của Tôi</button></div></section>';
+ return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="openChronicle()"><span class="emoji">📖</span><b>Cuốn sách của tôi</b><small>Cuốn album tự được viết tiếp từ kỷ niệm bạn lưu</small></button></div>'+homeValuePanel()+'<div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div><button class="btn" style="width:100%;margin:0 0 15px" onclick="openChronicle()">📖 Mở Cuốn Kỷ Niệm Của Tôi</button></div></section>';
 }
 function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.id==='nav-'+(view==='wizard'||view==='album'||view==='editor'||view==='chronicle'||view==='chronicle-manage'?'albums':view)));
 let html='';if(view==='home')html=homePageFeed();
