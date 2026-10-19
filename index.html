@@ -36,6 +36,77 @@
 .home-page-meta{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 0;gap:10px}.home-page-meta div{min-width:0}.home-page-meta b{font-size:15px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.home-page-meta small{font-size:12px;color:#948278;display:block;margin-top:3px}.home-page-meta span{display:grid;place-items:center;width:37px;height:37px;flex-shrink:0;border-radius:50%;background:#f3e7e0;color:#a65d62;font-size:21px}
 .home-feed-empty{padding:40px 23px;background:#f7ebe2;border-radius:19px;text-align:center}.home-feed-empty h2{font:26px Georgia,serif}.home-feed-empty p{line-height:1.6;color:#857366}
 @media(max-width:365px){.home-art{min-height:365px}.home-art-title{font-size:29px}.home-art.cover .home-art-title{font-size:35px}}@media(prefers-reduced-motion:reduce){.home-art{transition:none}}
+
+/* V3: keep the original welcome/CTA; showcase mixed-media pages below. */
+.home-v3 .section{padding-bottom:10px}
+.home-v3 .home-welcome h1{font-family:Georgia,serif}
+.home-v3 .home-welcome .action b{font-family:Georgia,serif;color:#ac686c}
+.home-v3 .slice-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:25px 0 15px}
+.home-v3 .slice-header h2{font-family:Georgia,serif;font-size:25px;line-height:1.12;letter-spacing:-.6px;margin:0}
+.home-v3 .slice-header button{border-radius:100px;padding:10px 12px;background:#f4e9e1;color:#915b5e;font-size:12px;font-weight:700}
+.home-v3 .slice-intro{font-size:12px;color:#958278;line-height:1.5;margin:-5px 0 16px}
+.home-v3 .slice-card{width:100%;border:0;background:none;padding:0;text-align:left;display:block;margin:0 0 26px;color:inherit}
+.home-v3 .slice-card:active .memory-composition{transform:scale(.985)}
+.memory-composition{position:relative;isolation:isolate;aspect-ratio:3/4;min-height:395px;border-radius:9px;overflow:hidden;background:#f1e0d0;box-shadow:0 8px 25px #4f34242b;transition:transform .22s ease;contain:layout paint}
+.memory-composition .slice-texture{position:absolute;inset:0;opacity:.21;pointer-events:none;background-image:radial-gradient(#fff9 1px,transparent 1px);background-size:12px 12px;z-index:1}
+.memory-composition .photo-layer{position:absolute;overflow:hidden;border:5px solid #fffbed;background:#ead4be;box-shadow:0 5px 16px #4a282a43;z-index:2}
+.memory-composition .photo-layer img,.memory-composition .photo-layer video{width:100%;height:100%;object-fit:cover;display:block}
+.memory-composition .photo-layer video{pointer-events:none}
+.memory-composition .photo-layer .play-mark{position:absolute;bottom:5px;right:6px;background:#20130c99;color:white;border-radius:12px;padding:3px 6px;font-size:12px}
+.memory-composition .slice-kicker{position:absolute;top:17px;left:17px;z-index:5;letter-spacing:2px;font-size:10px;font-weight:800;color:var(--accent,#8b3234)}
+.memory-composition .slice-title{position:absolute;z-index:6;max-width:86%;margin:0;font:italic 38px/1.03 Georgia,serif;color:var(--accent,#8b3234);text-shadow:0 1px 0 #fff4;overflow-wrap:anywhere}
+.memory-composition .slice-caption{position:absolute;z-index:7;margin:0;max-width:72%;font:italic 14px/1.4 Georgia,serif;white-space:pre-wrap;color:var(--accent,#8b3234)}
+.memory-composition .slice-decor{position:absolute;z-index:4;font-size:42px;transform:rotate(13deg);filter:drop-shadow(0 2px 1px #0002)}
+.memory-composition .slice-music{position:absolute;top:15px;right:13px;z-index:9;background:#fff9;color:#693f3e;border-radius:99px;font-size:10px;padding:6px 9px;font-weight:700}
+.memory-composition .slice-tape{position:absolute;z-index:7;width:72px;height:21px;background:#fff6cfb0;transform:rotate(10deg);top:34%;left:41%}
+.memory-composition.variant-0{background:linear-gradient(145deg,#fae8d7,#f4cdc2);--accent:#a63b38}
+.memory-composition.variant-0 .photo-layer:nth-of-type(1){left:5%;top:10%;width:42%;height:31%}
+.memory-composition.variant-0 .photo-layer:nth-of-type(2){right:5%;top:8%;width:43%;height:34%;transform:rotate(3deg)}
+.memory-composition.variant-0 .photo-layer:nth-of-type(3){left:4%;top:44%;width:33%;height:29%;transform:rotate(-4deg)}
+.memory-composition.variant-0 .photo-layer:nth-of-type(4){right:4%;top:42%;width:58%;height:36%;transform:rotate(3deg)}
+.memory-composition.variant-0 .slice-title{bottom:11%;left:6%}
+.memory-composition.variant-0 .slice-caption{bottom:4%;right:5%;font-size:12px;text-align:right}
+.memory-composition.variant-0 .slice-decor{right:7%;bottom:8%}
+.memory-composition.variant-1{background:linear-gradient(155deg,#a71c29,#e34339 78%,#b92327);--accent:#fff1d0}
+.memory-composition.variant-1 .photo-layer{border-width:8px;border-bottom-width:20px}
+.memory-composition.variant-1 .photo-layer:nth-of-type(1){left:-5%;top:14%;width:49%;height:27%;transform:rotate(-9deg)}
+.memory-composition.variant-1 .photo-layer:nth-of-type(2){right:-2%;top:13%;width:49%;height:30%;transform:rotate(8deg)}
+.memory-composition.variant-1 .photo-layer:nth-of-type(3){left:8%;top:39%;width:55%;height:35%;transform:rotate(8deg)}
+.memory-composition.variant-1 .photo-layer:nth-of-type(4){right:1%;top:44%;width:41%;height:29%;transform:rotate(-8deg)}
+.memory-composition.variant-1 .slice-title{left:7%;bottom:7%;font-size:48px;max-width:85%}
+.memory-composition.variant-1 .slice-caption{top:7%;left:6%;color:#ffdfbd}
+.memory-composition.variant-1 .slice-decor{bottom:8%;right:7%}
+.memory-composition.variant-2{background:linear-gradient(135deg,#ffbbac,#fae5bb);--accent:#9b453b}
+.memory-composition.variant-2 .photo-layer{border-width:9px;border-bottom-width:25px}
+.memory-composition.variant-2 .photo-layer:nth-of-type(1){left:9%;top:12%;width:43%;height:34%;transform:rotate(-12deg)}
+.memory-composition.variant-2 .photo-layer:nth-of-type(2){right:6%;top:18%;width:43%;height:37%;transform:rotate(9deg)}
+.memory-composition.variant-2 .photo-layer:nth-of-type(3){left:9%;top:50%;width:44%;height:34%;transform:rotate(8deg)}
+.memory-composition.variant-2 .photo-layer:nth-of-type(4){right:4%;top:54%;width:43%;height:30%;transform:rotate(-10deg)}
+.memory-composition.variant-2 .slice-title{top:3%;left:8%;font-size:34px}
+.memory-composition.variant-2 .slice-caption{bottom:3%;left:12%;font-size:12px}
+.memory-composition.variant-2 .slice-decor{right:7%;bottom:9%}
+.memory-composition.variant-3{background:linear-gradient(160deg,#e8ead8,#acc5b5);--accent:#3a695d}
+.memory-composition.variant-3 .photo-layer:nth-of-type(1){left:6%;top:12%;width:57%;height:44%;transform:rotate(-4deg)}
+.memory-composition.variant-3 .photo-layer:nth-of-type(2){right:5%;top:18%;width:35%;height:26%;transform:rotate(6deg)}
+.memory-composition.variant-3 .photo-layer:nth-of-type(3){right:5%;top:48%;width:50%;height:35%;transform:rotate(4deg)}
+.memory-composition.variant-3 .photo-layer:nth-of-type(4){left:6%;top:59%;width:34%;height:25%;transform:rotate(-7deg)}
+.memory-composition.variant-3 .slice-title{left:7%;top:3%;font-size:35px}
+.memory-composition.variant-3 .slice-caption{bottom:4%;right:6%;text-align:right}
+.memory-composition.variant-3 .slice-decor{bottom:8%;left:2%}
+.memory-composition.variant-4{background:linear-gradient(135deg,#e9dfd8,#f9efe2);--accent:#624437}
+.memory-composition.variant-4 .photo-layer:nth-of-type(1){left:7%;top:15%;width:52%;height:39%}
+.memory-composition.variant-4 .photo-layer:nth-of-type(2){right:6%;top:21%;width:32%;height:27%}
+.memory-composition.variant-4 .photo-layer:nth-of-type(3){left:6%;top:57%;width:38%;height:29%;transform:rotate(-3deg)}
+.memory-composition.variant-4 .photo-layer:nth-of-type(4){right:5%;top:53%;width:49%;height:34%;transform:rotate(5deg)}
+.memory-composition.variant-4 .slice-title{left:7%;top:4%;font-size:38px}
+.memory-composition.variant-4 .slice-caption{bottom:4%;left:7%;font-size:12px}
+.memory-composition.variant-4 .slice-decor{right:6%;bottom:7%}
+.slice-card-caption{display:flex;align-items:center;justify-content:space-between;padding:11px 2px 0;gap:7px}
+.slice-card-caption b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slice-card-caption small{font-size:11px;color:#9a877b}
+.memory-composition.read-mode{margin:10px 0 18px;min-height:440px}
+@media(max-width:360px){.memory-composition{min-height:355px}.memory-composition .slice-title{font-size:30px}}
+@media(prefers-reduced-motion:reduce){.memory-composition{transition:none}}
 </style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0;
@@ -105,33 +176,62 @@ function selectAllMemories(){const ids=db.memories.filter(m=>(m.title+' '+m.note
 async function deleteSelectedMemories(){if(!librarySelected.size)return;if(!confirm('Xóa '+librarySelected.size+' kỷ niệm đã chọn? Các nội dung này cũng sẽ bị gỡ khỏi album.'))return;const ids=new Set(librarySelected);const gone=db.memories.filter(m=>ids.has(m.id));db.memories=db.memories.filter(m=>!ids.has(m.id));for(const a of db.albums){a.items=a.items.filter(id=>!ids.has(id));a.pages=a.pages.filter(p=>!p.items?.some(id=>ids.has(id)))}try{const d=await mediaDB;const tx=d.transaction('files','readwrite');for(const m of gone){if(m.mediaId)tx.objectStore('files').delete(m.mediaId);if(mediaURLs[m.id]){URL.revokeObjectURL(mediaURLs[m.id]);delete mediaURLs[m.id]}}}catch(e){console.error(e)}librarySelected.clear();librarySelect=false;save();render();notify('Đã xóa '+gone.length+' kỷ niệm')}
 function albumCard(a){return '<button class="card" onclick="openAlbum(\''+a.id+'\')"><div class="art" style="background:'+themes[a.theme][1]+'">'+themes[a.theme][2]+'</div><div class="details"><b>'+safe(a.title)+'</b><small>'+a.pages.length+' trang · '+themes[a.theme][0]+'</small></div></button>'}
 
-function homeArtMedia(m,symbol){
- if(!m)return symbol;
+
+const illustrativePhotos=[
+ 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&q=75',
+ 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600&q=75',
+ 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=75',
+ 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=600&q=75',
+ 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&q=75',
+ 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=75',
+ 'https://images.unsplash.com/photo-1527525443983-6e60c75fff46?w=600&q=75'
+];
+let homeOrder=[];
+function shuffled(arr){const x=arr.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
+function refreshSlices(){homeOrder=[];render();notify('Đã làm mới những lát kỷ niệm ♡')}
+function sliceItems(a,p){const ids=[...(p.items||[]),...(a.items||[])];const seen=new Set();const matches=[];for(const id of ids){if(seen.has(id))continue;seen.add(id);const m=db.memories.find(x=>x.id===id);if(m)matches.push(m)}return matches.slice(0,4)}
+function sliceMedia(m,index,demo){
+ if(demo)return '<img loading="lazy" alt="Hình minh họa lát cắt" src="'+illustrativePhotos[(index+demo*2)%illustrativePhotos.length]+'">';
+ if(!m)return '<span aria-hidden="true" style="display:grid;place-items:center;height:100%;font-size:35px">✿</span>';
  const src=mediaURLs[m.id]||m.media;
- if(!src)return m.kind==='note'?'📝':symbol;
- if(m.kind==='photo')return '<img loading="lazy" src="'+src+'" alt="'+safe(m.title||'Ảnh kỷ niệm')+'">';
- if(m.kind==='video')return '<video muted playsinline preload="metadata" src="'+src+'" aria-label="'+safe(m.title||'Video kỷ niệm')+'"></video>';
- return '📝';
+ if(!src)return '<span style="display:grid;place-items:center;height:100%;font-size:30px">'+(m.kind==='note'?'✎':'📷')+'</span>';
+ if(m.kind==='video')return '<video muted playsinline preload="metadata" src="'+src+'"></video><span class="play-mark">▶ Video</span>';
+ return '<img loading="lazy" alt="'+safe(m.title||'Kỷ niệm')+'" src="'+src+'">';
 }
-function homePageCard(a,p,i){
- const t=themes[a.theme]||themes.tet,kind=p.type||'story',m=(p.items||[]).map(id=>db.memories.find(x=>x.id===id)).find(Boolean);
- const cover=kind==='cover',ending=kind==='ending';
- const quote=ending?'Có những điều đẹp đẽ sẽ ở lại mãi.':cover?'Một cuốn album, ngàn điều để nhớ.':m?.note||'Những ngày thật đáng nhớ.';
- return '<button class="home-page-card" onclick="openAlbumPage(\''+a.id+'\','+i+')" aria-label="Mở trang '+(i+1)+' của '+safe(a.title)+'">'+
- '<div class="home-art '+safe(a.theme)+' '+safe(a.style)+' '+(cover?'cover':ending?'ending':kind==='feature'?'feature':'story')+'">'+
- '<div class="home-art-top"><span>KỶ NIỆM · '+safe(t[0]).toUpperCase()+'</span><span>'+String(i+1).padStart(2,'0')+' / '+String(a.pages.length).padStart(2,'0')+'</span></div>'+
- '<h2 class="home-art-title">'+safe(p.title||a.title)+'</h2>'+
- '<div class="home-art-image">'+(ending?'💌':homeArtMedia(m,t[2]))+'</div>'+
- '<div class="home-art-quote">'+safe(quote)+'</div><div class="home-art-flower" aria-hidden="true">'+t[2]+'</div>'+
- '<div class="home-art-bottom">OUR LITTLE STORY</div></div>'+
- '<div class="home-page-meta"><div><b>'+safe(p.title||a.title)+'</b><small>'+safe(a.title)+' · Trang '+(i+1)+'/'+a.pages.length+'</small></div><span aria-hidden="true">↗</span></div></button>';
+function renderComposition(a,p,i,options={}){
+ const theme=themes[a.theme]||themes.tet,variant=options.variant??(i%5);
+ const media=sliceItems(a,p),demo=options.demo||0;
+ const title=p.type==='cover'?(p.title||a.title):p.type==='ending'?'Thương nhớ đong đầy':(p.title||a.title);
+ const caption=p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
+ let photos='';for(let n=0;n<4;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n%Math.max(1,media.length)],n,demo)+'</div>';
+ return '<div class="memory-composition variant-'+variant+(options.read?' read-mode':'')+'">'+
+ '<div class="slice-texture"></div><div class="slice-kicker">'+safe(theme[0]).toUpperCase()+' · KỶ NIỆM</div>'+
+ photos+'<div class="slice-tape" aria-hidden="true"></div>'+
+ '<h2 class="slice-title">'+safe(title)+'</h2><div class="slice-caption">'+safe(caption.slice(0,160))+'</div>'+
+ '<div class="slice-decor" aria-hidden="true">'+theme[2]+'</div>'+
+ (media.some(m=>m.kind==='video')?'<span class="slice-music">▶ VIDEO</span>':'')+
+ '</div>';
+}
+function sampleSlices(){
+ return ['Tết sum vầy','Những ngày rực rỡ','Năm tháng bên nhau'].map((title,i)=>({a:{id:'',title,theme:i===1?'love':'tet',prompt:'',items:[],pages:[]},p:{title,type:'collage',items:[]},i,demo:i+1}));
 }
 function homePageFeed(){
- const parts=[];for(const a of db.albums)for(let i=0;i<(a.pages||[]).length;i++)parts.push(homePageCard(a,a.pages[i],i));
- return '<section class="home-feed"><div class="home-feed-heading"><small>COLLECTION OF STORIES</small><h1>Những trang<br><em>đáng nhớ.</em></h1><p>Mỗi trang là một câu chuyện. Chạm vào để xem trọn vẹn.</p></div>'+
- (parts.length?'<div class="home-page-feed">'+parts.join('')+'</div>':'<div class="home-feed-empty"><div style="font-size:55px">📖</div><h2>Trang đầu tiên đang chờ bạn</h2><p>Tạo album đầu tiên để các trang thiết kế của bạn hiện ở đây.</p><button class="btn primary" onclick="startAlbum()">✦ Tạo album</button></div>')+'</section>';
+ const raw=[];
+ for(const a of db.albums)for(let i=0;i<(a.pages||[]).length;i++){const p=a.pages[i];if(p.type!=='ending')raw.push({a,p,i,demo:0})}
+ if(!raw.length&&db.memories.length){
+  const arr=db.memories.slice(0,24);for(let i=0;i<arr.length;i+=4){
+   const group=arr.slice(i,i+4);const a={id:'',title:'Những ngày đáng nhớ',theme:['tet','love','travel'][i/4%3],prompt:'',items:group.map(x=>x.id),pages:[]};
+   raw.push({a,p:{title:group[0]?.title||'Những ngày đáng nhớ',type:'collage',items:a.items},i:i/4,demo:0});
+  }
+ }
+ const pieces=raw.length?raw:sampleSlices();
+ if(!homeOrder.length||pieces.some(x=>!homeOrder.includes(x.a.id+'-'+x.i+'-'+x.demo))||homeOrder.length!==pieces.length)homeOrder=shuffled(pieces.map(x=>x.a.id+'-'+x.i+'-'+x.demo));
+ pieces.sort((a,b)=>homeOrder.indexOf(a.a.id+'-'+a.i+'-'+a.demo)-homeOrder.indexOf(b.a.id+'-'+b.i+'-'+b.demo));
+ const cards=pieces.map((x,n)=>'<button class="slice-card" type="button" onclick="'+(x.demo||!x.a.id?'startAlbum()':"openAlbumPage('"+x.a.id+"',"+x.i+")")+'">'+
+ renderComposition(x.a,x.p,n,{variant:(n+x.i)%5,demo:x.demo})+
+ '<div class="slice-card-caption"><b>'+safe(x.p.title)+'</b><small>'+(x.demo?'Bản mẫu minh họa':'Trang '+(x.i+1)+' · '+safe(x.a.title))+' ↗</small></div></button>').join('');
+ return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="startAlbum()"><span class="emoji">✦</span><b>Tạo album</b><small>Chọn phong cách, nội dung và xem bản dàn trang</small></button></div><div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div></div></section>';
 }
-function openAlbumPage(id,pageIndex){openAlbum(id);activePage=Math.max(0,Math.min(pageIndex,current().pages.length-1));albumReturnView='home';render()}
 function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.id==='nav-'+view));let html='';if(view==='home')html=homePageFeed();
 if(view==='memories')html=libraryView();
 if(view==='albums')html='<section class="section"><div class="eyebrow">LUỒNG B · THIẾT KẾ CÂU CHUYỆN</div><h1 class="title">Album</h1><p class="muted">Những cuốn album nhiều trang được dàn theo chủ đề và phong cách bạn chọn.</p><button class="btn primary" onclick="startAlbum()">✦ Tạo album mới</button><div class="grid" style="margin-top:20px">'+(db.albums.map(albumCard).join('')||'<p class="muted">Chưa có album nào.</p>')+'</div></section>';
@@ -180,13 +280,34 @@ function toggleAllWizard(){
  updateWizardGrid();
 }
 
-function generateAlbum(){const selected=wizard.selected.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);const pages=[{title:wizard.title||wizard.prompt.slice(0,46)||'Chuyện của chúng mình',type:'cover',items:[]},...selected.map((m,i)=>({title:m.title,type:i%3===0?'collage':i%3===1?'story':'feature',items:[m.id]})),{title:'Những điều còn ở lại ♡',type:'ending',items:[]}];const a={id:'a'+Date.now(),title:wizard.title||wizard.prompt.slice(0,46)||'Album của tôi',prompt:wizard.prompt,theme:wizard.theme,style:wizard.style,items:wizard.selected.slice(),pages,accepted:false};db.albums.unshift(a);save();openAlbum(a.id);notify('Đã tạo bản dàn trang mô phỏng')}
+function generateAlbum(){
+ const selected=wizard.selected.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);
+ const name=wizard.title||wizard.prompt.slice(0,46)||'Chuyện của chúng mình';
+ const pages=[{title:name,type:'cover',items:selected.slice(0,4).map(m=>m.id)}];
+ for(let i=0;i<selected.length;i+=4){
+  const group=selected.slice(i,i+4);
+  pages.push({title:group[0]?.title||'Khoảnh khắc đáng nhớ',type:'collage',items:group.map(m=>m.id)});
+ }
+ pages.push({title:'Những điều còn ở lại ♡',type:'ending',items:selected.slice(-4).map(m=>m.id)});
+ const a={id:'a'+Date.now(),title:name,prompt:wizard.prompt,theme:wizard.theme,style:wizard.style,items:wizard.selected.slice(),pages,accepted:false};
+ db.albums.unshift(a);save();openAlbum(a.id);notify('Đã tạo các trang collage mô phỏng');
+}
 let albumReturnView='albums';
 function openAlbum(id){albumReturnView='albums';activeAlbum=id;activePage=0;navigate('album')}
 function current(){return db.albums.find(a=>a.id===activeAlbum)}
-function renderAlbum(){const a=current();if(!a)return '<section class="section">Không tìm thấy album</section>';const p=a.pages[activePage],m=p.items?.map(id=>db.memories.find(x=>x.id===id)).filter(Boolean)[0];const t=themes[a.theme];let content='<div class="kicker">'+safe(t[0].toUpperCase())+' · '+safe(styles[a.style])+'</div><h2>'+safe(p.title)+'</h2><span class="sticker">'+t[2]+'</span>';if(p.type==='cover')content+='<div class="picture">'+t[2]+'</div><div class="quote">Một cuốn album, ngàn điều để nhớ.</div>';else if(p.type==='ending')content+='<div class="quote" style="margin-top:120px">Cảm ơn vì đã là một phần của câu chuyện này.</div>';else content+='<div class="picture">'+(m?mediaMarkup(m):t[2])+'</div><div class="quote">'+safe(m?.note||'Có những khoảnh khắc chẳng cần lời giải thích.')+'</div>';content+='<div class="foot"><span>KỶ NIỆM</span><span>'+String(activePage+1).padStart(2,'0')+' / '+String(a.pages.length).padStart(2,'0')+'</span></div>';return '<section class="section"><button class="back" onclick="navigate(albumReturnView)">← Quay lại</button><div class="eyebrow">'+(a.accepted?'ALBUM ĐÃ LƯU':'XEM TRƯỚC TOÀN BỘ ALBUM')+'</div><h1 class="title">'+safe(a.title)+'</h1><div class="preview-nav"><button class="btn" onclick="turn(-1)">← Trước</button><b>Trang '+(activePage+1)+' / '+a.pages.length+'</b><button class="btn" onclick="turn(1)">Sau →</button></div><div class="paper '+a.theme+' '+a.style+'">'+content+'</div><div class="row"><button class="btn" onclick="redesign()">✦ Thiết kế lại</button><button class="btn primary" onclick="acceptAlbum()">✓ '+(a.accepted?'Đã lưu':'Chấp nhận & lưu')+'</button></div><div class="row" style="margin-top:10px"><button class="btn" onclick="addToAlbum()">＋ Thêm kỷ niệm</button><button class="btn" onclick="shareAlbum()">↗ Chia sẻ</button></div><p class="muted">Dàn trang mô phỏng, không phải kết quả AI thật. Kỷ niệm gốc không bị thay đổi.</p></section>'}
+function renderAlbum(){
+ const a=current();if(!a)return '<section class="section">Không tìm thấy album</section>';
+ const p=a.pages[activePage];
+ return '<section class="section"><button class="back" onclick="navigate(albumReturnView)">← Quay lại</button>'+
+ '<div class="eyebrow">'+(a.accepted?'ALBUM ĐÃ LƯU':'XEM TRƯỚC ALBUM')+'</div><h1 class="title">'+safe(a.title)+'</h1>'+
+ '<div class="preview-nav"><button class="btn" onclick="turn(-1)">← Trước</button><b>Trang '+(activePage+1)+' / '+a.pages.length+'</b><button class="btn" onclick="turn(1)">Sau →</button></div>'+
+ renderComposition(a,p,activePage,{variant:(activePage+(a.variantOffset||0))%5,read:true})+
+ '<div class="row"><button class="btn" onclick="redesign()">✦ Đổi bố cục</button><button class="btn primary" onclick="acceptAlbum()">✓ '+(a.accepted?'Đã lưu':'Lưu album')+'</button></div>'+
+ '<div class="row" style="margin-top:10px"><button class="btn" onclick="addToAlbum()">＋ Thêm kỷ niệm</button><button class="btn" onclick="shareAlbum()">↗ Chia sẻ</button></div>'+
+ '<p class="muted">Đây là bản dàn trang tự động theo mẫu. Tính năng AI thiết kế từ mô tả chưa kết nối.</p></section>';
+}
 function turn(n){const a=current();activePage=Math.max(0,Math.min(a.pages.length-1,activePage+n));render()}function acceptAlbum(){current().accepted=true;save();render();notify('Đã lưu album')}
-function redesign(){const a=current();const keys=Object.keys(styles);a.style=keys[(keys.indexOf(a.style)+1)%keys.length];a.accepted=false;save();render();notify('Đã đổi bố cục, giữ nguyên nội dung gốc')}
+function redesign(){const a=current();const keys=Object.keys(styles);a.style=keys[(keys.indexOf(a.style)+1)%keys.length];a.variantOffset=(a.variantOffset||0)+1;a.accepted=false;save();render();notify('Đã đổi bố cục, giữ nguyên nội dung gốc')}
 function addToAlbum(){const a=current(),available=db.memories.filter(m=>!a.items.includes(m.id));$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Thêm vào album</h2>'+(available.map(m=>'<button class="chip" style="display:block;width:100%;margin:8px 0" onclick="attach(\''+m.id+'\')">'+safe(m.title)+'</button>').join('')||'<p class="muted">Không còn kỷ niệm mới. Bạn có thể lưu thêm ở tab Kỷ niệm.</p>')+'</div>'}
 function attach(id){const a=current(),m=db.memories.find(x=>x.id===id);a.items.push(id);a.pages.splice(a.pages.length-1,0,{title:m.title,type:'story',items:[id]});save();closeModal();render();notify('Đã thêm, không ảnh hưởng bản gốc')}
 function shareAlbum(){notify('Chia sẻ và cộng tác thật sẽ có ở phiên bản sau')}
