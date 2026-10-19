@@ -242,6 +242,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 @media(prefers-reduced-motion:reduce){.book-flip-layer{transition-duration:.01ms!important}}
 @media(min-width:700px){.book-sheet-content .slice-title{font-size:42px}}
 @media(max-width:360px){.book-stage{min-height:310px}.book-reader h1{font-size:26px}}
+
+/* Page art direction varies with the chapter, beyond colors alone. */
+.memory-composition.style-editorial .slice-title{font-family:Georgia,serif;font-style:normal;font-weight:700;letter-spacing:-1.6px}
+.memory-composition.style-editorial .photo-layer{border-width:3px;border-bottom-width:3px;box-shadow:5px 6px 0 #231b194f}
+.memory-composition.style-editorial .slice-kicker{font-size:11px;letter-spacing:3px}
+.memory-composition.style-editorial .slice-tape{display:none}
+.memory-composition.style-journal .slice-title{font-weight:400;font-style:italic;text-decoration:none;letter-spacing:-1px}
+.memory-composition.style-journal .slice-caption{font-family:Georgia,serif;font-style:italic;font-size:15px}
+.memory-composition.style-journal .slice-texture{opacity:.48}
+.memory-composition.style-minimal .slice-title{font-style:normal;font-weight:400;font-size:35px;letter-spacing:-1.5px}
+.memory-composition.style-minimal .slice-decor,.memory-composition.style-minimal .slice-tape{display:none}
+.memory-composition.style-minimal .photo-layer{border:2px solid #fff;box-shadow:0 4px 10px #5b43412d;transform:none}
+.memory-composition.style-scrapbook .slice-decor{filter:drop-shadow(2px 3px 2px #44222233)}
 </style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
 let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false,libraryType='all',readerOrigin='albums',chroniclePage=0,bookFlipBusy=false;
@@ -351,7 +364,7 @@ function renderComposition(a,p,i,options={}){
  const title=p.type==='cover'?(p.title||a.title):p.type==='ending'?'Thương nhớ đong đầy':(p.title||a.title);
  const caption=p.caption!==undefined?p.caption:p.type==='ending'?'Những gì đẹp nhất sẽ luôn ở lại.':media.find(x=>x.note)?.note|| (a.prompt&&a.prompt.length<95?a.prompt:'Có những khoảnh khắc, chỉ cần nhớ lại là thấy ấm lòng.');
  let photos='';const mediaCount=demo?4:media.length;for(let n=0;n<mediaCount;n++)photos+='<div class="photo-layer">'+sliceMedia(media[n],n,demo,!!options.read)+'</div>';
- return '<div class="memory-composition variant-'+variant+' count-'+mediaCount+(options.read?' read-mode':'')+'">'+
+ return '<div class="memory-composition variant-'+variant+' style-'+safe(p.style||a.style||'scrapbook')+' count-'+mediaCount+(options.read?' read-mode':'')+'">'+
  '<div class="slice-texture"></div><div class="slice-kicker">'+safe(theme[0]).toUpperCase()+' · KỶ NIỆM</div>'+
  photos+'<div class="slice-tape" aria-hidden="true"></div>'+
  '<h2 class="slice-title">'+safe(title)+'</h2><div class="slice-caption">'+safe(caption.slice(0,160))+'</div>'+
@@ -754,7 +767,7 @@ function bookReader(main){
  '<p class="book-hint">'+(main?'Mỗi tháng là một chương, mỗi kỷ niệm có màu sắc riêng.':'Vuốt hoặc kéo mép trang để lật như cuốn album giấy.')+'</p>'+
  '<div id="bookStage" class="book-stage" role="region" aria-label="Trang album" onpointerdown="bookPointerDown(event)" onpointerup="bookPointerUp(event)" onpointercancel="bookPointerCancel()" ondragstart="event.preventDefault()"><div class="book-current" id="bookCurrent">'+bookPaper(p,index,main)+'</div></div>'+
  '<div class="book-control-row"><button class="btn" onclick="bookTurn(-1)" '+(index===0?'disabled':'')+'>← Trước</button><span class="page-label">'+(index+1)+' / '+pages.length+'</span><button class="btn" onclick="bookTurn(1)" '+(index===pages.length-1?'disabled':'')+'>Sau →</button></div>'+
- '<div class="book-action-row">'+(main?'<button class="btn" onclick="chronicleContents()">☷ Chọn chương</button><button class="btn" onclick="openChronicleManage()">✎ Tùy chỉnh sách</button>':
+ '<div class="book-action-row">'+(main?'<button class="btn" onclick="chronicleContents()">☷ Chọn chương</button>'+(p.type==='chronicle-story'?'<button class="btn" onclick="editChroniclePage()">✎ Sửa trang</button>':'<button class="btn" onclick="openChronicleManage()">✎ Quản lý chương</button>'):
  '<button class="btn" onclick="navigate(&quot;editor&quot;)">✎ Chỉnh sửa trang</button>'+(a.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>'))+'</div>'+
  '<p class="book-hint" style="text-align:center;margin-top:16px">Lật trang bằng cách vuốt ngang hoặc dùng phím ← →</p></section>';
 }
@@ -854,6 +867,27 @@ function saveChronicleChapter(key){
  const config=chronicleSettings();
  config.chapters[key]={title:$('chapterTitle').value.trim().slice(0,90)||chapter.rawTitle,mood:$('chapterMood').value.trim().slice(0,90)||chapter.mood,theme:themes[$('chapterTheme').value]?$('chapterTheme').value:chapter.theme,style:styles[$('chapterStyle').value]?$('chapterStyle').value:chapter.style};
  save();closeModal();render();notify('Đã cập nhật chương');
+}
+
+
+function editChroniclePage(){
+ const p=chronicleModel().pages[chroniclePage];
+ if(!p||p.type!=='chronicle-story')return;
+ const variants=['Tranh ghép cổ điển','Tạp chí lễ hội','Polaroid nghệ thuật','Nhật ký dịu dàng','Editorial tối giản'];
+ const layouts=variants.map((label,i)=>'<option value="'+i+'" '+(p.variant===i?'selected':'')+'>'+label+'</option>').join('');
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet"><button class="back" onclick="closeModal()">✕ Đóng</button><h2>Chỉnh trang kỷ niệm</h2>'+
+ '<p class="muted">Lời nhắn và bố cục của trang này sẽ được giữ riêng, dù cuốn sách tiếp tục cập nhật kỷ niệm khác.</p>'+
+ '<label class="label" for="chronPageTitle">Tiêu đề</label><input class="field" id="chronPageTitle" maxlength="120" value="'+safe(p.title)+'">'+
+ '<label class="label" for="chronPageCaption">Lời nhắn</label><textarea class="field" id="chronPageCaption" rows="3" maxlength="300">'+safe(p.caption||'')+'</textarea>'+
+ '<label class="label" for="chronPageVariant">Kiểu bố cục</label><select class="field" id="chronPageVariant">'+layouts+'</select>'+
+ '<button class="btn primary" style="width:100%" onclick="saveChroniclePage()">✓ Lưu trang</button></div>';
+}
+function saveChroniclePage(){
+ const p=chronicleModel().pages[chroniclePage];if(!p||p.type!=='chronicle-story')return;
+ const c=chronicleSettings(),v=Number($('chronPageVariant').value);
+ c.pageEdits[p.id]={title:$('chronPageTitle').value.trim().slice(0,120)||p.title,caption:$('chronPageCaption').value.trim().slice(0,300),variant:Math.max(0,Math.min(4,Number.isFinite(v)?v:p.variant))};
+ save();closeModal();render();notify('Đã cập nhật trang kỷ niệm');
 }
 
 function editPageText(field,value){
