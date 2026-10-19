@@ -157,7 +157,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 @media(prefers-reduced-motion:reduce){.photo-viewer{animation:none}}
 .top .top-right{display:flex;align-items:center;gap:8px}.top .account-trigger{height:44px;width:44px;border-radius:50%;background:#f5eae5;color:#975d64;font-size:22px}.top .top-add{font-size:12px}.nav{justify-content:space-evenly}.nav button{min-height:50px;min-width:82px}.album-state{font-size:11px;color:#945b60}.album-overview{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.album-overview .card .art{height:130px;overflow:hidden}.album-overview .art img{width:100%;height:100%;object-fit:cover}.album-overview .card .details{min-height:90px}.library-filter-bar{display:flex;gap:7px;margin:10px 0 16px;overflow:auto}.library-filter-bar button{border-radius:100px;padding:11px 14px;white-space:nowrap;background:#f2ebe5;color:#786a62}.library-filter-bar button.active{background:#a7656a;color:#fff}.album-read-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:15px 0}.album-read-actions button{min-height:44px}.editor-panel{display:grid;gap:10px}.editor-panel .field{margin-bottom:6px}@media(max-width:370px){.top .top-add{display:none}}</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><div class="top-right"><button class="btn top-add" onclick="startMemory()">＋ Lưu kỷ niệm</button><button class="account-trigger" onclick="navigate(&quot;me&quot;)" aria-label="Tài khoản và cài đặt">◉</button></div></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button></nav></main><div id="viewerHost"></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
-let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false,libraryType='all',readerOrigin='albums';
+let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};if(!Array.isArray(db.trash))db.trash=[];if(!Array.isArray(db.albumTrash))db.albumTrash=[];let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0,uploadOrigin='home',uploadBusy=false,libraryType='all',readerOrigin='albums',chroniclePage=0,bookFlipBusy=false;
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),save=()=>{try{localStorage.setItem('kyniem-correct-v1',JSON.stringify(db))}catch(e){notify('Bộ nhớ đầy: hãy dùng ảnh nhỏ hơn')}},notify=s=>{const e=$('toast');e.textContent=s;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)};
 const mediaDB=new Promise((resolve,reject)=>{const r=indexedDB.open('kyniem-media-v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('files');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
 async function putMedia(id,file){const d=await mediaDB;return new Promise((ok,fail)=>{const tx=d.transaction('files','readwrite');tx.objectStore('files').put(file,id);tx.oncomplete=ok;tx.onerror=()=>fail(tx.error)})}
@@ -276,6 +276,87 @@ function sampleSlices(){
  return ['Tết sum vầy','Những ngày rực rỡ','Năm tháng bên nhau'].map((title,i)=>({a:{id:'',title,theme:i===1?'love':'tet',prompt:'',items:[],pages:[]},p:{title,type:'collage',items:[]},i,demo:i+1}));
 }
 function openAlbumPage(id,page){const a=db.albums.find(x=>x.id===id);if(!a)return;readerOrigin='home';activeAlbum=id;activePage=Math.max(0,Math.min(a.pages.length-1,page));navigate('album')}
+
+/* ONE CONTINUOUS CHRONICLE: generated from the original library, never duplicates files. */
+function chronicleSettings(){
+ if(!db.mainBook||typeof db.mainBook!=='object')db.mainBook={};
+ const c=db.mainBook;
+ if(!Array.isArray(c.excludedIds))c.excludedIds=[];
+ if(!c.chapters||typeof c.chapters!=='object')c.chapters={};
+ if(!c.pageEdits||typeof c.pageEdits!=='object')c.pageEdits={};
+ return c;
+}
+function memoryDate(m){
+ if(m.eventDate&&/^\d{4}-\d\d-\d\d$/.test(m.eventDate)){const d=new Date(m.eventDate+'T12:00:00');if(!isNaN(d.getTime()))return d}
+ const v=String(m.date||'').trim(),vn=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+ if(vn){const d=new Date(+vn[3],+vn[2]-1,+vn[1],12);if(d.getFullYear()==+vn[3]&&d.getMonth()==+vn[2]-1)return d}
+ if(m.createdAt){const d=new Date(m.createdAt);if(!isNaN(d.getTime()))return d}
+ const d=new Date(v);return isNaN(d.getTime())?new Date():d;
+}
+function isoDay(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function vietnamMonth(m){return ['Tháng Giêng','Tháng Hai','Tháng Ba','Tháng Tư','Tháng Năm','Tháng Sáu','Tháng Bảy','Tháng Tám','Tháng Chín','Tháng Mười','Tháng Mười Một','Tháng Chạp'][m-1]||'Tháng '+m}
+function normalizeEvent(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,65)||'everyday'}
+function meaningfulName(s){return s&&!/^(img|dsc|vid|photo|image|video|screenshot)[ _.-]?\d+/i.test(s)&&s.length<65&&s!=='Một kỷ niệm'&&s!=='Ghi chú'}
+function eventOfMemory(m,d){
+ if(String(m.eventName||'').trim())return String(m.eventName).trim().slice(0,80);
+ const text=(m.title+' '+(m.note||'')).toLowerCase();
+ if(/valentine|14\s*\/\s*2|14-2|lễ tình nhân/.test(text))return 'Valentine '+d.getFullYear();
+ if(/đi chơi tết|du xuân|chơi xuân|đón xuân/.test(text))return 'Đi chơi Tết';
+ if(/tết|lì xì|giao thừa|sum vầy/.test(text))return 'Tết sum vầy';
+ if(/sinh nhật|birthday/.test(text))return 'Sinh nhật';
+ if(/đà lạt|da lat/.test(text))return 'Chuyến đi Đà Lạt';
+ if(/du lịch|đi chơi|chuyến đi|trip|biển|travel/.test(text))return 'Những chuyến đi';
+ if(/kỷ niệm ngày cưới|đám cưới|wedding/.test(text))return 'Kỷ niệm tình yêu';
+ if(meaningfulName(m.title))return String(m.title).trim().slice(0,58);
+ return 'Những ngày đáng nhớ';
+}
+function eventDesign(name,i){
+ const s=name.toLowerCase();
+ if(/tết|xuân|giao thừa/.test(s))return {theme:'tet',style:'scrapbook',mood:'Rộn ràng, ấm áp',symbol:'🌸',variant:1};
+ if(/valentine|tình yêu|cưới|hẹn hò/.test(s))return {theme:'love',style:'journal',mood:'Dịu dàng, lãng mạn',symbol:'♡',variant:2};
+ if(/chuyến|du lịch|đi chơi|đà lạt|biển/.test(s))return {theme:'travel',style:'editorial',mood:'Tự do, rực rỡ',symbol:'✈',variant:3};
+ if(/gia đình|sum họp|sinh nhật/.test(s))return {theme:'family',style:'scrapbook',mood:'Thân thương, gần gũi',symbol:'✿',variant:0};
+ const picks=['family','travel','love','tet'];return {theme:picks[i%4],style:['journal','editorial','scrapbook','minimal'][i%4],mood:'Mộc mạc, đáng nhớ',symbol:'✦',variant:i%5};
+}
+function chronicleModel(){
+ const settings=chronicleSettings(),excluded=new Set(settings.excludedIds);
+ const sorted=db.memories.map((m,i)=>({m,i,date:memoryDate(m)})).filter(x=>!excluded.has(x.m.id)).sort((a,b)=>a.date-b.date||b.i-a.i);
+ const map=new Map();
+ for(const x of sorted){
+  const monthKey=x.date.getFullYear()+'-'+String(x.date.getMonth()+1).padStart(2,'0');
+  const label=eventOfMemory(x.m,x.date),key=monthKey+'|'+normalizeEvent(label);
+  if(!map.has(key))map.set(key,{key,monthKey,rawTitle:label,items:[],firstDate:x.date});
+  map.get(key).items.push(x.m);
+ }
+ const chapters=[...map.values()].map((ch,i)=>({...ch,...eventDesign(ch.rawTitle,i),...(settings.chapters[ch.key]||{})}));
+ const monthMap=new Map();for(const ch of chapters){if(!monthMap.has(ch.monthKey))monthMap.set(ch.monthKey,[]);monthMap.get(ch.monthKey).push(ch)}
+ const pages=[{id:'cover',type:'chronicle-cover',title:'Cuốn Kỷ Niệm Của Tôi',items:sorted.slice(0,4).map(x=>x.m.id),theme:'family',style:'editorial',variant:0,caption:'Từng ngày mình đi qua đều đáng được ghi nhớ.'}];
+ for(const [monthKey,events] of monthMap){
+  const [year,month]=monthKey.split('-').map(Number),monthTitle=vietnamMonth(month)+' '+year;
+  pages.push({id:'month-'+monthKey,type:'month-divider',title:monthTitle,monthKey,year,month,theme:events[0].theme,variant:events[0].variant,items:[]});
+  for(const ch of events){
+   pages.push({id:'chapter-'+ch.key,type:'chapter-divider',title:ch.title||ch.rawTitle,subtitle:monthTitle,chapterKey:ch.key,theme:ch.theme,style:ch.style,mood:ch.mood,icon:ch.symbol,items:ch.items.slice(0,3).map(m=>m.id),variant:ch.variant});
+   for(let i=0;i<ch.items.length;i+=4){
+    const items=ch.items.slice(i,i+4);
+    const pageId='story-'+ch.key+'-'+items.map(x=>x.id).join('_');
+    const edit=settings.pageEdits[pageId]||{};
+    pages.push({id:pageId,type:'chronicle-story',title:ch.title||ch.rawTitle,chapterKey:ch.key,theme:ch.theme,style:ch.style,mood:ch.mood,items:items.map(m=>m.id),variant:(ch.variant+1+i/4)%5,caption:items.find(m=>m.note)?.note||'Có những khoảnh khắc sẽ mãi ở lại.',...edit});
+   }
+  }
+ }
+ pages.push({id:'continuing',type:'chronicle-ending',title:'Câu chuyện vẫn đang viết tiếp…',items:[],theme:'family',variant:4});
+ return {pages,chapters,months:[...monthMap.keys()],count:sorted.length};
+}
+function openChronicle(at=0){readerOrigin='albums';chroniclePage=Math.max(0,Math.min(chronicleModel().pages.length-1,at));navigate('chronicle')}
+function renderChronicleCard(){
+ const c=chronicleModel(),cover=c.pages[0],photos=cover.items.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);
+ const collage=photos.slice(0,3).map(m=>{const src=mediaURLs[m.id]||m.media;return src&&m.kind==='photo'?'<img alt="" loading="lazy" src="'+src+'">':'<span>✿</span>'}).join('');
+ return '<button class="chronicle-card" onclick="openChronicle()" aria-label="Mở Cuốn Kỷ Niệm Của Tôi">'+
+ '<div class="chronicle-cover"><div class="chronicle-cover-spine"></div><div class="chronicle-small">KỶ NIỆM ✿ · CUỐN SÁCH CỦA TÔI</div><h2>Cuốn Kỷ Niệm<br><i>Của Tôi</i></h2>'+
+ '<div class="chronicle-cover-pictures">'+(collage||'<span>✿ &nbsp; ♡ &nbsp; ✦</span>')+'</div><div class="chronicle-cover-foot">MỖI NGÀY · MỘT TRANG CÂU CHUYỆN</div></div>'+
+ '<div class="chronicle-card-info"><div><b>Một cuốn sách lớn lên cùng bạn</b><small>'+c.count+' kỷ niệm · '+c.chapters.length+' câu chuyện · '+c.months.length+' tháng</small></div><span>Đọc sách ↗</span></div></button>';
+}
+
 function homePageFeed(){
  const raw=[];
  for(const a of db.albums)for(let i=0;i<(a.pages||[]).length;i++){const p=a.pages[i];if(p.type!=='ending')raw.push({a,p,i,demo:0})}
