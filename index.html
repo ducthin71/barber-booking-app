@@ -693,16 +693,48 @@ function albumMenu(){
  '<div class="editor-panel"><button class="btn" onclick="closeModal();navigate(\'editor\')">✎ Chỉnh sửa trang</button><button class="btn" onclick="closeModal();addToAlbum()">＋ Thêm kỷ niệm</button>'+
  '<button class="btn" onclick="closeModal();renameAlbum()">✎ Đổi tên album</button><button class="btn" style="color:#a33e46" onclick="closeModal();deleteAlbum()">🗑 Xóa album</button></div></div>';
 }
-function renderAlbum(){
- const a=current();if(!a)return '<section class="section">Không tìm thấy album</section>';
- const p=a.pages[activePage];
- return '<section class="section album-read-shell"><div class="album-toolbar"><button class="back" onclick="navigate(readerOrigin)">← '+(readerOrigin==='home'?'Trang chủ':'Album')+'</button><button class="btn" onclick="albumMenu()" aria-label="Quản lý album">⋯</button></div>'+
- '<div class="eyebrow">'+(a.accepted?'ALBUM ĐÃ HOÀN THÀNH':'BẢN NHÁP ALBUM')+'</div><h1 class="title">'+safe(a.title)+'</h1>'+
- renderComposition(a,p,activePage,{variant:(a.pageVariants?.[activePage]??activePage%5),read:true})+
- '<div class="album-read-actions"><button class="btn" onclick="turn(-1)" '+(activePage===0?'disabled':'')+' aria-label="Trang trước">← Trước</button><span class="muted">'+(activePage+1)+' / '+a.pages.length+'</span><button class="btn" onclick="turn(1)" '+(activePage>=a.pages.length-1?'disabled':'')+' aria-label="Trang sau">Sau →</button></div>'+
- '<div class="row"><button class="btn" onclick="navigate(\'editor\')">✎ Chỉnh sửa trang</button>'+
- (a.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>')+'</div></section>';
+
+function bookPages(main){
+ if(main)return chronicleModel().pages;
+ const a=current();
+ return a?(a.pages||[]).map((p,i)=>({...p,theme:p.theme||a.theme,style:p.style||a.style,variant:a.pageVariants?.[i]??(i%5)})):[];
 }
+function bookPaper(p,i,main){
+ if(main&&p.type==='month-divider'){
+  const chapters=chronicleModel().chapters.filter(c=>c.monthKey===p.monthKey);
+  return '<div class="book-sheet-content"><div class="book-page-month"><div class="month-small">DÒNG THỜI GIAN · '+p.year+'</div><div class="month-symbol">✿</div><h2>'+safe(p.title)+'</h2><p>'+chapters.length+' câu chuyện · '+chapters.reduce((n,c)=>n+c.items.length,0)+' khoảnh khắc</p></div></div>';
+ }
+ if(main&&p.type==='chapter-divider'){
+  const photos=(p.items||[]).map(id=>db.memories.find(m=>m.id===id)).filter(m=>m?.kind==='photo'&&(mediaURLs[m.id]||m.media));
+  const picHTML=photos.map(m=>'<img alt="" loading="lazy" src="'+(mediaURLs[m.id]||m.media)+'">').join('');
+  return '<div class="book-sheet-content"><div class="book-page-chapter theme-'+safe(p.theme)+'"><div class="chapter-eyebrow">'+safe(p.subtitle||'MỘT CÂU CHUYỆN')+'</div><div class="chapter-symbol">'+safe(p.icon||'✿')+'</div><h2>'+safe(p.title)+'</h2><div class="chapter-photos">'+picHTML+'</div><p class="chapter-mood">'+safe(p.mood||'Một chương đáng nhớ')+'</p></div></div>';
+ }
+ if(main&&p.type==='chronicle-ending')return '<div class="book-sheet-content"><div class="book-page-ending"><span class="ending-flower">✿</span><h2>Câu chuyện<br>vẫn đang<br>viết tiếp…</h2><p>Mỗi khoảnh khắc mới sẽ trở thành một trang mới.</p><small>kỷniệm ♡</small></div></div>';
+ const a=main?{title:'Cuốn Kỷ Niệm Của Tôi',theme:p.theme||'family',style:p.style||'scrapbook',items:[],prompt:''}:current();
+ const composition=renderComposition(a,p,i,{variant:p.variant??i%5,read:true});
+ return '<div class="book-sheet-content">'+(main&&p.type==='chronicle-cover'?'<div class="book-page-cover">':'')+composition+(main&&p.type==='chronicle-cover'?'</div>':'')+'</div>';
+}
+function renderChronicle(){return bookReader(true)}
+function goBackBook(){navigate(view==='chronicle'?'albums':readerOrigin)}
+function bookReader(main){
+ const pages=bookPages(main),at=main?chroniclePage:activePage,index=Math.max(0,Math.min(pages.length-1,at)),p=pages[index],a=main?null:current();
+ if(!p)return '<section class="section">Chưa có trang nào. <button class="btn" onclick="goBackBook()">← Quay lại</button></section>';
+ if(main)chroniclePage=index;else activePage=index;
+ const title=main?'Cuốn Kỷ Niệm Của Tôi':a.title;
+ const status=main?'CUỐN SÁCH TỰ CẬP NHẬT':a.accepted?'ALBUM ĐÃ HOÀN THÀNH':'BẢN NHÁP ALBUM';
+ return '<section class="section book-reader">'+
+ '<div class="book-reader-top"><button class="back" onclick="goBackBook()">← Quay lại</button><div class="row" style="flex:0 0 auto;gap:6px">'+
+ (main?'<button class="btn book-small-btn" onclick="chronicleContents()">☷ Mục lục</button><button class="btn book-small-btn" onclick="openChronicleManage()">⋯</button>':'<button class="btn book-small-btn" onclick="albumMenu()">⋯</button>')+
+ '</div></div><div class="book-reader-subtitle">'+status+'</div><h1>'+safe(title)+'</h1>'+
+ '<p class="book-hint">'+(main?'Mỗi tháng là một chương, mỗi kỷ niệm có màu sắc riêng.':'Vuốt hoặc kéo mép trang để lật như cuốn album giấy.')+'</p>'+
+ '<div id="bookStage" class="book-stage" role="region" aria-label="Trang album" onpointerdown="bookPointerDown(event)" onpointerup="bookPointerUp(event)" onpointercancel="bookPointerCancel()" ondragstart="event.preventDefault()"><div class="book-current" id="bookCurrent">'+bookPaper(p,index,main)+'</div></div>'+
+ '<div class="book-control-row"><button class="btn" onclick="bookTurn(-1)" '+(index===0?'disabled':'')+'>← Trước</button><span class="page-label">'+(index+1)+' / '+pages.length+'</span><button class="btn" onclick="bookTurn(1)" '+(index===pages.length-1?'disabled':'')+'>Sau →</button></div>'+
+ '<div class="book-action-row">'+(main?'<button class="btn" onclick="chronicleContents()">☷ Chọn chương</button><button class="btn" onclick="openChronicleManage()">✎ Tùy chỉnh sách</button>':
+ '<button class="btn" onclick="navigate(&quot;editor&quot;)">✎ Chỉnh sửa trang</button>'+(a.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>'))+'</div>'+
+ '<p class="book-hint" style="text-align:center;margin-top:16px">Lật trang bằng cách vuốt ngang hoặc dùng phím ← →</p></section>';
+}
+
+function renderAlbum(){return bookReader(false)}
 function editPageText(field,value){
  const a=current();if(!a)return;const p=a.pages[activePage];p[field]=String(value||'').slice(0,300);
  a.accepted=false;save();
@@ -723,7 +755,7 @@ function renderEditor(){
 }
 function editNavigatePage(n){const a=current();activePage=Math.max(0,Math.min(a.pages.length-1,activePage+n));render();scrollTo(0,0)}
 
-function turn(n){const a=current();activePage=Math.max(0,Math.min(a.pages.length-1,activePage+n));render()}function acceptAlbum(){current().accepted=true;save();render();notify('Đã lưu album')}
+function acceptAlbum(){current().accepted=true;save();render();notify('Đã lưu album')}
 function redesign(){const a=current();a.pageVariants=a.pageVariants||{};a.pageVariants[activePage]=((a.pageVariants[activePage]??activePage%5)+1)%5;a.accepted=false;save();render();notify('Đã đổi bố cục trang '+(activePage+1)+', giữ nguyên nội dung gốc')}
 function addToAlbum(){
  const a=current(),available=db.memories.filter(m=>!(a.items||[]).includes(m.id));
