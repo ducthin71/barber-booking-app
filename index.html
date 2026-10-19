@@ -401,7 +401,9 @@ function eventOfMemory(m,d){
  if(String(m.eventName||'').trim())return String(m.eventName).trim().slice(0,80);
  const text=(m.title+' '+(m.note||'')).toLowerCase();
  if(/valentine|14\s*\/\s*2|14-2|lễ tình nhân/.test(text))return 'Valentine '+d.getFullYear();
- if(/đi chơi tết|du xuân|chơi xuân|đón xuân/.test(text))return 'Đi chơi Tết';
+ if(/đi chơi tết|du xuân|chơi xuân/.test(String(m.title||'').toLowerCase()))return 'Đi chơi Tết';
+ if(/tết|lì xì|giao thừa|sum vầy/.test(String(m.title||'').toLowerCase()))return 'Tết sum vầy';
+ if(/đi chơi tết|du xuân|chơi xuân/.test(text))return 'Đi chơi Tết';
  if(/tết|lì xì|giao thừa|sum vầy/.test(text))return 'Tết sum vầy';
  if(/sinh nhật|birthday/.test(text))return 'Sinh nhật';
  if(/đà lạt|da lat/.test(text))return 'Chuyến đi Đà Lạt';
@@ -470,10 +472,10 @@ function homePageFeed(){
  const pieces=raw.length?raw:sampleSlices();
  if(!homeOrder.length||pieces.some(x=>!homeOrder.includes(x.a.id+'-'+x.i+'-'+x.demo))||homeOrder.length!==pieces.length)homeOrder=shuffled(pieces.map(x=>x.a.id+'-'+x.i+'-'+x.demo));
  pieces.sort((a,b)=>homeOrder.indexOf(a.a.id+'-'+a.i+'-'+a.demo)-homeOrder.indexOf(b.a.id+'-'+b.i+'-'+b.demo));
- const cards=pieces.map((x,n)=>'<button class="slice-card" type="button" onclick="'+(x.demo?'startAlbum()':x.main?'openChronicle('+x.i+')':!x.a.id?"detail('"+x.a.items[0]+"')":"openAlbumPage('"+x.a.id+"',"+x.i+")")+'">'+
+ const cards=pieces.slice(0,10).map((x,n)=>'<button class="slice-card" type="button" onclick="'+(x.demo?'startAlbum()':x.main?'openChronicle('+x.i+')':!x.a.id?"detail('"+x.a.items[0]+"')":"openAlbumPage('"+x.a.id+"',"+x.i+")")+'">'+
  renderComposition(x.a,x.p,n,{variant:(n+x.i)%5,demo:x.demo})+
  '<div class="slice-card-caption"><b>'+safe(x.p.title)+'</b><small>'+(x.demo?'Bản mẫu minh họa':'Trang '+(x.i+1)+' · '+safe(x.a.title))+' ↗</small></div></button>').join('');
- return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="startAlbum()"><span class="emoji">✦</span><b>Tạo album</b><small>Chọn phong cách, nội dung và xem bản dàn trang</small></button></div><div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div></div></section>';
+ return '<section class="home-v3"><div class="section home-welcome"><div class="eyebrow">GÓC NHỎ CỦA NHỮNG ĐIỀU ĐÁNG NHỚ</div><h1 class="title">Giữ khoảnh khắc.<br>Kể câu chuyện.</h1><p class="muted">Lưu kỷ niệm ngay khi nó xảy ra. Khi muốn, hãy biến chúng thành một album được thiết kế theo phong cách riêng.</p><div class="actions"><button class="action" onclick="startMemory()"><span class="emoji">📷</span><b>Lưu kỷ niệm</b><small>Ảnh, video, ghi chú — lưu trước, phân loại sau</small></button><button class="action" onclick="startAlbum()"><span class="emoji">✦</span><b>Tạo album</b><small>Chọn phong cách, nội dung và xem bản dàn trang</small></button></div><div class="slice-header"><h2>Những lát cắt kỷ niệm</h2><button onclick="refreshSlices()">↻ Làm mới</button></div><p class="slice-intro">Mỗi lát cắt là một trang câu chuyện, với ảnh, video và những lời nhắn đáng nhớ.</p><div class="home-page-feed">'+cards+'</div><button class="btn" style="width:100%;margin:0 0 15px" onclick="openChronicle()">📖 Mở Cuốn Kỷ Niệm Của Tôi</button></div></section>';
 }
 function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.id==='nav-'+(view==='wizard'||view==='album'||view==='editor'||view==='chronicle'||view==='chronicle-manage'?'albums':view)));
 let html='';if(view==='home')html=homePageFeed();
@@ -795,6 +797,7 @@ function bookTurn(dir){
  if(!stage||!under||reduce){setIndex();return}
  bookFlipBusy=true;
  const previousPaper=under.innerHTML;
+ under.querySelectorAll('video').forEach(v=>{try{v.pause()}catch(e){}});
  under.innerHTML=bookPaper(pages[nextIndex],nextIndex,main);
  const turning=document.createElement('div');turning.className='book-flip-layer '+(dir>0?'forward':'backward');
  turning.innerHTML='<div class="book-flip-front">'+previousPaper+'</div><div class="book-flip-back" aria-hidden="true"></div>';
