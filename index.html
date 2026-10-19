@@ -173,32 +173,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .chronicle-card-info{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 2px 0}
 .chronicle-card-info b{display:block;font:18px Georgia,serif}.chronicle-card-info small{display:block;color:#907e75;font-size:11px;margin-top:5px}
 .chronicle-card-info>span{font-size:12px;white-space:nowrap;color:#a45d64;font-weight:800}
-.book-reader{padding-top:14px;max-width:500px}
-.book-reader .book-reader-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
-.book-reader .book-reader-top button{min-height:44px}
-.book-reader .book-reader-top .book-small-btn{padding:9px 12px}
-.book-reader-subtitle{font-size:10px;letter-spacing:1.9px;color:#a16f67;margin:5px 0 9px;font-weight:800}
-.book-reader h1{font:29px/1.12 Georgia,serif;margin:0 0 9px}
-.book-reader .book-hint{font-size:12px;color:#988478;margin:4px 0 13px}
-.book-stage{width:100%;aspect-ratio:3/4;min-height:350px;max-height:calc(100dvh - 218px);position:relative;perspective:1400px;overflow:visible;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
-.book-stage:active{cursor:grabbing}
-.book-current,.book-flip-layer{position:absolute;inset:0}
-.book-current{box-shadow:0 14px 22px #39241f38,0 2px 0 3px #f7e9dd;overflow:hidden;border-radius:2px 9px 9px 2px;isolation:isolate;background:#fffaf1}
-.book-current:after{content:"";position:absolute;inset:0 auto 0 0;width:15px;pointer-events:none;z-index:11;background:linear-gradient(90deg,#2b181c36,#fff7 45%,transparent)}
-.book-current:before{content:"";position:absolute;bottom:4px;right:4px;width:24px;height:24px;background:linear-gradient(135deg,transparent 40%,#f3e1d5 52%,#fff9f1 70%);filter:drop-shadow(-2px -2px 2px #5a343424);z-index:12;pointer-events:none}
-.book-sheet-content{width:100%;height:100%;overflow:hidden;position:relative;background:#fffaf4}
-.book-sheet-content .memory-composition{border-radius:0;width:100%;height:100%;aspect-ratio:auto;min-height:0;box-shadow:none;transform:none}
-.book-sheet-content .memory-composition.read-mode{margin:0;min-height:0}
-.book-sheet-content .slice-title{font-size:clamp(28px,8vw,43px)}
-.book-flip-layer{z-index:21;transform-style:preserve-3d;pointer-events:none;will-change:transform;transition:transform .72s cubic-bezier(.24,.61,.22,1)}
-.book-flip-layer.forward{transform-origin:left center}
-.book-flip-layer.backward{transform-origin:right center}
-.book-flip-layer.forward.flipping{transform:rotateY(-178deg)}
-.book-flip-layer.backward.flipping{transform:rotateY(178deg)}
-.book-flip-front,.book-flip-back{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 24px #332b3270;background:#fff9f0;border-radius:2px 10px 10px 2px}
-.book-flip-front .book-sheet-content{height:100%}
-.book-flip-back{transform:rotateY(180deg);background:linear-gradient(110deg,#d7b9aa,#fff7ec 25%,#f0e0d3 90%,#bb8d7e);box-shadow:inset 12px 0 18px #5e394126,0 10px 22px #432a2366}
-.book-flip-back:after{content:"KỶ NIỆM ✿";font:italic 24px Georgia,serif;color:#c5a89b;position:absolute;left:0;right:0;top:48%;text-align:center}
 .book-page-month{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 25px;background:radial-gradient(circle at 50% 22%,#fdf4e5,#e9d5c8);color:#97554f;gap:14px}
 .book-page-month .month-symbol{font-size:64px}
 .book-page-month .month-small{letter-spacing:3px;font-size:10px}
@@ -224,11 +198,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .book-page-ending .ending-flower{font-size:82px}
 .book-page-cover .memory-composition{--accent:#a05b60}
 .book-page-cover{height:100%}
-.book-control-row{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:17px 0 8px}
-.book-control-row button{min-height:46px;min-width:90px;border-radius:22px}
-.book-control-row .page-label{font-size:12px;font-weight:700;color:#906e65;white-space:nowrap}
-.book-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.book-action-row button{flex:1;min-height:44px}
 .chronicle-contents-list{display:grid;gap:8px;max-height:57dvh;overflow:auto}
 .chronicle-contents-list button{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;border-radius:10px;background:#f5ede7;padding:11px;color:#78534d}
 .chronicle-month-heading{font:20px Georgia,serif;color:#805959;margin:14px 0 4px}
@@ -239,10 +208,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .chronicle-manage-event .event-items{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .chronicle-manage-event .event-items button{padding:8px 10px;border-radius:15px;background:#fff;color:#9a5b60;font-size:11px}
 .chronicle-empty{padding:25px 15px;text-align:center;background:#fff5eb;border-radius:15px;margin-top:15px}
-@media(prefers-reduced-motion:reduce){.book-flip-layer{transition-duration:.01ms!important}}
-@media(min-width:700px){.book-sheet-content .slice-title{font-size:42px}}
-@media(max-width:360px){.book-stage{min-height:310px}.book-reader h1{font-size:26px}}
-
 /* Page art direction varies with the chapter, beyond colors alone. */
 .memory-composition.style-editorial .slice-title{font-family:Georgia,serif;font-style:normal;font-weight:700;letter-spacing:-1.6px}
 .memory-composition.style-editorial .photo-layer{border-width:3px;border-bottom-width:3px;box-shadow:5px 6px 0 #231b194f}
@@ -439,7 +404,7 @@ function chronicleModel(){
  const pages=[{id:'cover',type:'chronicle-cover',title:'Cuốn Kỷ Niệm Của Tôi',items:sorted.slice(0,4).map(x=>x.m.id),theme:'family',style:'editorial',variant:0,caption:'Từng ngày mình đi qua đều đáng được ghi nhớ.'}];
  for(const [monthKey,events] of monthMap){
   const [year,month]=monthKey.split('-').map(Number),monthTitle=vietnamMonth(month)+' '+year;
-  pages.push({id:'month-'+monthKey,type:'month-divider',title:monthTitle,monthKey,year,month,theme:events[0].theme,variant:events[0].variant,items:[]});
+  pages.push({id:'month-'+monthKey,type:'month-divider',title:monthTitle,monthKey,year,month,theme:events[0].theme,variant:events[0].variant,chapterCount:events.length,memoryCount:events.reduce((n,ch)=>n+ch.items.length,0),items:[]});
   for(const ch of events){
    pages.push({id:'chapter-'+ch.key,type:'chapter-divider',title:ch.title||ch.rawTitle,subtitle:monthTitle,chapterKey:ch.key,theme:ch.theme,style:ch.style,mood:ch.mood,icon:ch.symbol,items:ch.items.slice(0,3).map(m=>m.id),variant:ch.variant});
    for(let i=0;i<ch.items.length;i+=4){
@@ -745,8 +710,7 @@ function bookPages(main){
 }
 function bookPaper(p,i,main){
  if(main&&p.type==='month-divider'){
-  const chapters=chronicleModel().chapters.filter(c=>c.monthKey===p.monthKey);
-  return '<div class="book-sheet-content"><div class="book-page-month"><div class="month-small">DÒNG THỜI GIAN · '+p.year+'</div><div class="month-symbol">✿</div><h2>'+safe(p.title)+'</h2><p>'+chapters.length+' câu chuyện · '+chapters.reduce((n,c)=>n+c.items.length,0)+' khoảnh khắc</p></div></div>';
+  return '<div class="book-sheet-content"><div class="book-page-month"><div class="month-small">DÒNG THỜI GIAN · '+p.year+'</div><div class="month-symbol">✿</div><h2>'+safe(p.title)+'</h2><p>'+(p.chapterCount||0)+' câu chuyện · '+(p.memoryCount||0)+' khoảnh khắc</p></div></div>';
  }
  if(main&&p.type==='chapter-divider'){
   const photos=(p.items||[]).map(id=>db.memories.find(m=>m.id===id)).filter(m=>m?.kind==='photo'&&(mediaURLs[m.id]||m.media));
