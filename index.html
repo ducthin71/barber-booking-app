@@ -469,7 +469,7 @@ if(view==='me')html='<section class="section"><button class="back" onclick="navi
 if(view==='trash')html=trashView();
 if(view==='chronicle')html=renderChronicle();if(view==='chronicle-manage')html=renderChronicleManage();if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();if(view==='editor')html=renderEditor();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures();if(view==='wizard'&&wizard.step===2)attachLibraryGestures('wizardGrid')}
 function filterMemories(q){$('memoryGrid').innerHTML=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(q.toLowerCase())).map(memoryCard).join('')}
-function startMemory(){uploadOrigin=view;mediaValue='';mediaKind='photo';pendingFiles=[];$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Lưu một kỷ niệm</h2><p class="muted">Chỉ cần chọn loại nội dung và lưu. Tên, ghi chú và album đều không bắt buộc.</p><div class="row"><button class="chip selected" onclick="setKind(\'photo\',this)">📷 Ảnh</button><button class="chip" onclick="setKind(\'video\',this)">🎬 Video</button><button class="chip" onclick="setKind(\'note\',this)">📝 Ghi chú</button></div><div id="upload"><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div></div><p id="uploadHint" class="muted">Chọn ảnh hoặc video. Có thể chọn nhiều tệp cùng lúc.</p><label class="label">Tên (không bắt buộc)</label><input class="field" id="memTitle" placeholder="Khoảnh khắc của tôi"><label class="label">Ghi chú (không bắt buộc)</label><textarea class="field" id="memNote" rows="3" placeholder="Bạn muốn nhớ điều gì?"></textarea><button class="btn primary" style="width:100%" id="saveMemoryButton" onclick="saveMemory()">Lưu vào bộ sưu tập</button></div>'}
+function startMemory(){uploadOrigin=view;mediaValue='';mediaKind='photo';pendingFiles=[];$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Lưu một kỷ niệm</h2><p class="muted">Chỉ cần chọn loại nội dung và lưu. Tên, ghi chú và album đều không bắt buộc.</p><div class="row"><button class="chip selected" onclick="setKind(\'photo\',this)">📷 Ảnh</button><button class="chip" onclick="setKind(\'video\',this)">🎬 Video</button><button class="chip" onclick="setKind(\'note\',this)">📝 Ghi chú</button></div><div id="upload"><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div></div><p id="uploadHint" class="muted">Chọn ảnh hoặc video. Có thể chọn nhiều tệp cùng lúc.</p><label class="label" for="memDate">Ngày diễn ra kỷ niệm</label><input class="field" id="memDate" type="date" value="'+isoDay(new Date())+'"><label class="label" for="memEvent">Tên sự kiện (nếu có)</label><input class="field" id="memEvent" maxlength="80" placeholder="Ví dụ: Đi chơi Tết, Valentine 2026"><p class="muted" style="margin-top:-10px">Tên sự kiện giúp cuốn sách tự nhóm ảnh vào đúng chương.</p><label class="label">Tên (không bắt buộc)</label><input class="field" id="memTitle" placeholder="Khoảnh khắc của tôi"><label class="label">Ghi chú (không bắt buộc)</label><textarea class="field" id="memNote" rows="3" placeholder="Bạn muốn nhớ điều gì?"></textarea><button class="btn primary" style="width:100%" id="saveMemoryButton" onclick="saveMemory()">Lưu vào bộ sưu tập</button></div>'}
 function setKind(k,b){mediaKind=k;pendingFiles=[];document.querySelectorAll('.sheet .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');$('upload').innerHTML=k==='note'?'':'<input class="field" type="file" multiple accept="'+(k==='video'?'video/*':'image/*')+'" onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div><p class="muted">Chọn nhiều tệp cùng lúc. Ảnh và video được lưu trên thiết bị.</p>'}
 function readMedia(e){
  pendingFiles=Array.from(e.target.files||[]).filter(f=>f.type.startsWith('image/')||f.type.startsWith('video/'));
@@ -479,16 +479,16 @@ function readMedia(e){
 }
 async function saveMemory(){
  if(uploadBusy)return;
- const title=$('memTitle').value.trim(),note=$('memNote').value.trim(),date=new Date().toLocaleDateString('vi-VN');
+ const title=$('memTitle').value.trim(),note=$('memNote').value.trim(),eventDate=$('memDate')?.value||isoDay(new Date()),eventName=$('memEvent')?.value.trim().slice(0,80)||'',createdAt=new Date().toISOString(),date=new Date(eventDate+'T12:00:00').toLocaleDateString('vi-VN');
  const files=mediaKind==='note'?[]:pendingFiles;
  if(mediaKind!=='note'&&!files.length){notify('Bạn chưa chọn ảnh hoặc video. Hãy chọn tệp trước khi lưu.');return}
  if(mediaKind==='note'&&!title&&!note){notify('Hãy nhập nội dung hoặc tên cho ghi chú.');return}
  uploadBusy=true;const b=$('saveMemoryButton');if(b){b.disabled=true;b.textContent='Đang lưu…'}
  let completed=0,failed=0;
- if(mediaKind==='note'){db.memories.unshift({id:'m'+Date.now()+'n',kind:'note',title:title||'Ghi chú',note,media:'',date});completed++}
+ if(mediaKind==='note'){db.memories.unshift({id:'m'+Date.now()+'n',kind:'note',title:title||'Ghi chú',note,media:'',date,eventDate,eventName,createdAt});completed++}
  else for(let n=0;n<files.length;n++){
   const file=files[n],id='m'+Date.now()+'-'+n+'-'+Math.random().toString(36).slice(2,6);
-  try{await putMedia(id,file);db.memories.unshift({id,mediaId:id,kind:file.type.startsWith('video/')?'video':'photo',title:title||(files.length>1?file.name:'Một kỷ niệm'),note,date});mediaURLs[id]=URL.createObjectURL(file);completed++}catch(e){console.error(e);failed++}
+  try{await putMedia(id,file);db.memories.unshift({id,mediaId:id,kind:file.type.startsWith('video/')?'video':'photo',title:title||(files.length>1?file.name:'Một kỷ niệm'),note,date,eventDate,eventName,createdAt});mediaURLs[id]=URL.createObjectURL(file);completed++}catch(e){console.error(e);failed++}
  }
  save();uploadBusy=false;
  if(b){b.disabled=false;b.textContent='Lưu vào bộ sưu tập'}
@@ -510,6 +510,30 @@ function stepViewer(direction){
  viewedMemoryId=ids[Math.min(ids.length-1,Math.max(0,pos+direction))];
  renderMemoryViewer();
 }
+
+function editMemoryMeta(id){
+ const m=db.memories.find(x=>x.id===id);if(!m)return;
+ closeViewer();const date=isoDay(memoryDate(m));
+ $('modal').classList.remove('hidden');
+ $('modal').innerHTML='<div class="sheet"><button class="back" onclick="closeModal()">✕ Đóng</button><h2>Thông tin kỷ niệm</h2>'+
+ '<p class="muted">Sửa ngày hoặc tên sự kiện để sắp xếp lại chương trong Cuốn Kỷ Niệm Của Tôi. Các album riêng không bị xóa.</p>'+
+ '<label class="label" for="editMemTitle">Tên kỷ niệm</label><input class="field" id="editMemTitle" maxlength="120" value="'+safe(m.title||'')+'">'+
+ '<label class="label" for="editMemEvent">Tên sự kiện / chương</label><input class="field" id="editMemEvent" maxlength="80" value="'+safe(m.eventName||'')+'" placeholder="Ví dụ: Đi chơi Tết">'+
+ '<label class="label" for="editMemDate">Ngày xảy ra</label><input class="field" id="editMemDate" type="date" value="'+date+'">'+
+ '<label class="label" for="editMemNote">Lời nhắn</label><textarea class="field" id="editMemNote" rows="3">'+safe(m.note||'')+'</textarea>'+
+ '<button class="btn primary" style="width:100%" onclick="saveMemoryMeta(\''+m.id+'\')">✓ Lưu thông tin</button></div>';
+}
+function saveMemoryMeta(id){
+ const m=db.memories.find(x=>x.id===id);if(!m)return;
+ const date=$('editMemDate').value;
+ if(!/^\d{4}-\d\d-\d\d$/.test(date)){notify('Vui lòng chọn ngày hợp lệ.');return}
+ m.title=$('editMemTitle').value.trim().slice(0,120)||m.title;
+ m.eventName=$('editMemEvent').value.trim().slice(0,80);
+ m.eventDate=date;m.date=new Date(date+'T12:00:00').toLocaleDateString('vi-VN');
+ m.note=$('editMemNote').value.trim().slice(0,1200);
+ save();closeModal();render();notify('Đã cập nhật ngày và chương kỷ niệm');
+}
+
 function renderMemoryViewer(){
  const m=db.memories.find(x=>x.id===viewedMemoryId);if(!m){closeViewer();return}
  const ids=db.memories.filter(x=>(x.title+' '+x.note).toLowerCase().includes(libraryQuery.toLowerCase())).map(x=>x.id);
@@ -519,7 +543,7 @@ function renderMemoryViewer(){
   m.kind==='video'&&src?'<video playsinline controls preload="metadata" src="'+src+'"></video>':
   '<div class="viewer-note">'+safe(m.note||m.title)+'</div>';
  $('viewerHost').innerHTML='<div class="photo-viewer" role="dialog" aria-modal="true" aria-label="Xem kỷ niệm">'+
- '<div class="viewer-top"><button class="viewer-close" onclick="closeViewer()" aria-label="Đóng">✕</button><span class="viewer-index">'+(index+1)+' / '+ids.length+'</span><button onclick="viewerDelete()" aria-label="Xóa kỷ niệm">🗑</button></div>'+
+ '<div class="viewer-top"><button class="viewer-close" onclick="closeViewer()" aria-label="Đóng">✕</button><span class="viewer-index">'+(index+1)+' / '+ids.length+'</span><div class="row" style="flex:0 0 auto;gap:6px"><button onclick="editMemoryMeta(\''+m.id+'\')" aria-label="Sửa ngày và sự kiện">✎</button><button onclick="viewerDelete()" aria-label="Xóa kỷ niệm">🗑</button></div></div>'+
  '<div class="viewer-main" id="viewerMain" ontouchstart="viewerTouchStart(event)" ontouchend="viewerTouchEnd(event)">'+media+'</div>'+
  '<div class="viewer-bottom"><button onclick="stepViewer(-1)" aria-label="Ảnh trước" '+(index===0?'disabled':'')+'>‹</button><div class="viewer-caption"><b>'+safe(m.title)+'</b><small>'+safe(m.note||m.date||'')+'</small></div><button onclick="stepViewer(1)" aria-label="Ảnh sau" '+(index>=ids.length-1?'disabled':'')+'>›</button></div></div>';
 }
