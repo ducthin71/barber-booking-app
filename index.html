@@ -15,9 +15,9 @@
  .library-round,.library-bottom button,.nav button{transition:none}
  .modal:not(.hidden),.modal:not(.hidden) .sheet{animation:none}
 }
-</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div><script>
+.wizard-library{margin:14px -20px 0}.wizard-library .library-grid{padding:0}.wizard-tools{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fdf9f3}.wizard-tools .library-round{white-space:nowrap;font-size:12px;padding:9px 12px}.wizard-tools .zoom-caption{font-size:12px;color:#7a7067;white-space:nowrap}.wizard-tools input[type=range]{flex:1;min-width:55px;accent-color:#a65d62}.wizard-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 20px;color:#785d52;font-size:13px}.wizard-summary strong{font-weight:800;color:#a65d62}.wizard-library .library-tile .tick{background:#0005;box-shadow:0 1px 5px #0004}.wizard-library .library-tile.is-selected .tick{background:#a65d62}.wizard-library .library-tile.is-selected:after{content:'';pointer-events:none;position:absolute;inset:0;border:3px solid #a65d62;box-shadow:inset 0 0 0 2px #fff6}.wizard-library .library-tile .tick{z-index:1}.wizard-library .library-tile .tick.numbered{font-size:11px;font-weight:800}.wizard-empty{padding:55px 22px;text-align:center;color:#817d74;font-size:14px}.wizard-note{font-size:12px;color:#877b71;line-height:1.5;padding:4px 20px 0}@media(prefers-reduced-motion:reduce){.wizard-library .library-tile{transition:none}}</style></head><body><main class="app"><header class="top"><div class="logo">kỷ<span>niệm</span> ✿</div><button class="btn" onclick="startMemory()">＋ Lưu kỷ niệm</button></header><div id="view"></div><nav class="nav"><button onclick="navigate('home')" id="nav-home"><strong>⌂</strong>Trang chủ</button><button onclick="navigate('memories')" id="nav-memories"><strong>▧</strong>Kỷ niệm</button><button onclick="navigate('albums')" id="nav-albums"><strong>▤</strong>Album</button><button onclick="navigate('me')" id="nav-me"><strong>◉</strong>Của tôi</button></nav></main><div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div><script>
 const themes={tet:['Tết','#f4ded4','🌸'],travel:['Du lịch','#e2eade','🏞️'],love:['Tình yêu','#f5dfe5','💌'],family:['Gia đình','#e9e2d6','🏡']},styles={scrapbook:'Scrapbook / Collage',editorial:'Tạp chí nghệ thuật',journal:'Nhật ký',minimal:'Tối giản'};
-let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',libraryPinch=null,libraryBlockClickUntil=0;
+let db;try{db=JSON.parse(localStorage.getItem('kyniem-correct-v1'))}catch(e){}if(!db||!db.memories||!db.albums)db={memories:[],albums:[]};let view='home',wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''},activeAlbum=null,activePage=0,editMemory=null,mediaValue='',mediaKind='photo',pendingFiles=[],mediaURLs={},libraryCols=4,librarySelect=false,librarySelected=new Set(),libraryQuery='',wizardSearch='',libraryPinch=null,libraryBlockClickUntil=0;
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),save=()=>{try{localStorage.setItem('kyniem-correct-v1',JSON.stringify(db))}catch(e){notify('Bộ nhớ đầy: hãy dùng ảnh nhỏ hơn')}},notify=s=>{const e=$('toast');e.textContent=s;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)};
 const mediaDB=new Promise((resolve,reject)=>{const r=indexedDB.open('kyniem-media-v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('files');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
 async function putMedia(id,file){const d=await mediaDB;return new Promise((ok,fail)=>{const tx=d.transaction('files','readwrite');tx.objectStore('files').put(file,id);tx.oncomplete=ok;tx.onerror=()=>fail(tx.error)})}
@@ -30,15 +30,15 @@ function toggleLibrarySelect(){librarySelect=!librarySelect;librarySelected.clea
 const clampCols=n=>Math.max(2,Math.min(7,Math.round(n)));
 const touchDist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
 function setLibraryCols(v){changeLibraryCols(Number(v));}
-function changeLibraryCols(v){
- const next=clampCols(v),grid=$('libraryGrid');if(next===libraryCols||!grid){libraryCols=next;return}
+function changeLibraryCols(v,gridId='libraryGrid'){
+ const next=clampCols(v),grid=$(gridId);if(next===libraryCols||!grid){libraryCols=next;return}
  const tiles=[...grid.querySelectorAll('.library-tile')];
  const visible=tiles.filter(t=>{const r=t.getBoundingClientRect();return r.bottom>-250&&r.top<innerHeight+250}).slice(0,110);
  const before=visible.map(t=>t.getBoundingClientRect());
  libraryCols=next;
  grid.style.setProperty('--library-cols',next);
- const label=$('colsLabel');if(label)label.textContent=next+' cột';
- const slider=$('librarySlider');if(slider)slider.value=String(next);
+ const label=$(gridId==='wizardGrid'?'wizardColsLabel':'colsLabel');if(label)label.textContent=next+' cột';
+ const slider=$(gridId==='wizardGrid'?'wizardSlider':'librarySlider');if(slider)slider.value=String(next);
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  visible.forEach((tile,i)=>{
   const old=before[i],now=tile.getBoundingClientRect();
@@ -51,8 +51,8 @@ function changeLibraryCols(v){
   ],{duration:210,easing:'cubic-bezier(.2,.8,.2,1)'});
  });
 }
-function attachLibraryGestures(){
- const grid=$('libraryGrid');if(!grid)return;
+function attachLibraryGestures(gridId='libraryGrid'){
+ const grid=$(gridId);if(!grid)return;
  // Each render replaces the grid; listeners are attached to the new grid only.
  grid.addEventListener('touchstart',e=>{
   if(e.touches.length!==2)return;
@@ -67,7 +67,7 @@ function attachLibraryGestures(){
   if(!libraryPinch.start)return;
   // Fingers apart => larger thumbnails (fewer columns); pinch in => more columns.
   const candidate=clampCols(libraryPinch.cols-3*Math.log2(distance/libraryPinch.start));
-  if(candidate!==libraryCols)changeLibraryCols(candidate);
+  if(candidate!==libraryCols)changeLibraryCols(candidate,gridId);
   libraryBlockClickUntil=Date.now()+550;
  },{passive:false});
  grid.addEventListener('touchend',e=>{
@@ -87,7 +87,7 @@ function render(){document.querySelectorAll('.nav button').forEach(b=>b.classLis
 if(view==='memories')html=libraryView();
 if(view==='albums')html='<section class="section"><div class="eyebrow">LUỒNG B · THIẾT KẾ CÂU CHUYỆN</div><h1 class="title">Album</h1><p class="muted">Những cuốn album nhiều trang được dàn theo chủ đề và phong cách bạn chọn.</p><button class="btn primary" onclick="startAlbum()">✦ Tạo album mới</button><div class="grid" style="margin-top:20px">'+(db.albums.map(albumCard).join('')||'<p class="muted">Chưa có album nào.</p>')+'</div></section>';
 if(view==='me')html='<section class="section"><div class="eyebrow">TÀI KHOẢN</div><h1 class="title">Của tôi</h1><div class="notice">Đây là prototype chạy trên thiết bị. Chưa có đăng nhập, AI thật, cộng tác trực tuyến hay đồng bộ đám mây.</div><p class="muted">'+db.memories.length+' kỷ niệm · '+db.albums.length+' album</p></section>';
-if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures()}
+if(view==='wizard')html=renderWizard();if(view==='album')html=renderAlbum();$('view').innerHTML=html;if(view==='memories')attachLibraryGestures();if(view==='wizard'&&wizard.step===2)attachLibraryGestures('wizardGrid')}
 function filterMemories(q){$('memoryGrid').innerHTML=db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(q.toLowerCase())).map(memoryCard).join('')}
 function startMemory(){mediaValue='';mediaKind='photo';pendingFiles=[];$('modal').classList.remove('hidden');$('modal').innerHTML='<div class="sheet"><button class="btn" onclick="closeModal()">✕ Đóng</button><h2>Lưu một kỷ niệm</h2><p class="muted">Chỉ cần chọn loại nội dung và lưu. Tên, ghi chú và album đều không bắt buộc.</p><div class="row"><button class="chip selected" onclick="setKind(\'photo\',this)">📷 Ảnh</button><button class="chip" onclick="setKind(\'video\',this)">🎬 Video</button><button class="chip" onclick="setKind(\'note\',this)">📝 Ghi chú</button></div><div id="upload"><input class="field" type="file" accept="image/*,video/*" multiple onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div></div><label class="label">Tên (không bắt buộc)</label><input class="field" id="memTitle" placeholder="Khoảnh khắc của tôi"><label class="label">Ghi chú (không bắt buộc)</label><textarea class="field" id="memNote" rows="3" placeholder="Bạn muốn nhớ điều gì?"></textarea><button class="btn primary" style="width:100%" onclick="saveMemory()">Lưu vào bộ sưu tập</button></div>'}
 function setKind(k,b){mediaKind=k;pendingFiles=[];document.querySelectorAll('.sheet .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');$('upload').innerHTML=k==='note'?'':'<input class="field" type="file" multiple accept="'+(k==='video'?'video/*':'image/*')+'" onchange="readMedia(event)"><div id="uploadPreview" class="grid"></div><p class="muted">Chọn nhiều tệp cùng lúc. Ảnh và video được lưu trên thiết bị.</p>'}
@@ -98,10 +98,39 @@ function detail(id){const m=db.memories.find(x=>x.id===id);$('modal').classList.
 async function deleteMemory(id){const m=db.memories.find(x=>x.id===id);if(!m||!confirm('Xóa kỷ niệm này? Kỷ niệm cũng sẽ bị gỡ khỏi các album sử dụng nó.'))return;db.memories=db.memories.filter(x=>x.id!==id);for(const a of db.albums){a.items=a.items.filter(x=>x!==id);a.pages=a.pages.filter(p=>!p.items?.includes(id))}if(m.mediaId){try{const d=await mediaDB;d.transaction('files','readwrite').objectStore('files').delete(m.mediaId)}catch(e){console.error(e)}}if(mediaURLs[id]){URL.revokeObjectURL(mediaURLs[id]);delete mediaURLs[id]}save();closeModal();render();notify('Đã xóa kỷ niệm')}
 function startAlbum(){wizard={step:1,title:'',theme:'tet',style:'scrapbook',selected:[],prompt:''};navigate('wizard')}
 function renderWizard(){let w=wizard,body='';if(w.step===1)body='<label class="label">Mô tả album bạn muốn AI thiết kế</label><textarea class="field" style="min-height:180px;line-height:1.6" placeholder="Ví dụ: Album Tết sum vầy, ấm áp, màu đỏ vàng, bố cục tạp chí, có lời nhắn..." oninput="wizard.prompt=this.value">'+safe(w.prompt||'')+'</textarea><p class="muted">Gợi ý nhanh (không bắt buộc)</p><div class="row">'+Object.entries(themes).map(([id,t])=>'<button style="font-size:12px;flex:0 0 auto;padding:9px;background:#fff;color:#776c63;border-color:#e6d8cb" class="chip" onclick="wizard.theme=\''+id+'\';wizard.prompt+=(wizard.prompt?\', \':\'\')+\'Chủ đề '+t[0]+'\';render()">'+t[2]+' '+t[0]+'</button>').join('')+'</div><div class="row" style="margin-top:8px">'+Object.entries(styles).map(([id,t])=>'<button style="font-size:12px;flex:0 0 auto;padding:9px;background:#fff;color:#776c63;border-color:#e6d8cb" class="chip" onclick="wizard.style=\''+id+'\';wizard.prompt+=(wizard.prompt?\', \':\'\')+\'phong cách '+t+'\';render()">'+t+'</button>').join('')+'</div><label class="label" style="display:block;margin-top:18px">Tên album (không bắt buộc)</label><input id="albumTitle" class="field" placeholder="Tên album" value="'+safe(w.title)+'" oninput="wizard.title=this.value">';
-if(w.step===2)body='<h2>Chọn kỷ niệm để kể</h2><p class="muted">Dùng lại những kỷ niệm đã lưu. Bạn cũng có thể lưu thêm ở luồng A và quay lại.</p><div class="checklist">'+(db.memories.map(m=>'<label class="check"><input type="checkbox" '+(w.selected.includes(m.id)?'checked':'')+' onchange="toggleSelected(\''+m.id+'\',this.checked)"><span>'+safe(m.title)+' · '+safe(m.kind)+'</span></label>').join('')||'<p class="notice">Chưa có kỷ niệm. Bạn vẫn có thể tạo album mẫu hoặc quay lại lưu nội dung.</p>')+'</div>';
+if(w.step===2)body='<h2>Chọn kỷ niệm để kể</h2><p class="muted">Chạm vào ảnh, video hoặc ghi chú để thêm vào album. Có thể chọn nhiều mục và thay đổi kích thước ảnh như trong Thư viện.</p><div class="wizard-library"><div class="wizard-summary"><strong id="wizardCount">'+w.selected.length+' đã chọn</strong><button class="library-round" id="wizardAllButton" onclick="toggleAllWizard()">Chọn tất cả</button></div><input class="field library-search" id="wizardSearch" placeholder="⌕ Tìm kỷ niệm" value="'+safe(wizardSearch)+'" oninput="wizardSearch=this.value;updateWizardGrid()"><div class="wizard-tools"><span class="zoom-caption">Thu nhỏ</span><input id="wizardSlider" type="range" min="2" max="7" value="'+libraryCols+'" step="1" aria-label="Thay đổi kích thước ảnh" oninput="changeLibraryCols(this.value,\'wizardGrid\')"><span id="wizardColsLabel" class="zoom-caption">'+libraryCols+' cột</span></div><div class="library-grid" id="wizardGrid" style="--library-cols:'+libraryCols+'">'+wizardTiles()+'</div><div class="wizard-note">Ảnh/video được chọn từ kho kỷ niệm; bản gốc vẫn được giữ nguyên.</div></div>';
 if(w.step===3)body='<h2>Chuẩn bị dàn trang ✦</h2><p class="muted">Chủ đề: '+themes[w.theme][0]+' · '+styles[w.style]+' · '+w.selected.length+' kỷ niệm</p><div class="notice">Bản prototype mô phỏng quá trình AI dàn trang bằng nhiều bố cục có sẵn. Chưa kết nối AI thật và không trừ phí.</div><button class="btn primary" style="width:100%;margin-top:18px" onclick="generateAlbum()">✦ Tạo bản xem trước</button>';
 return '<section class="section"><button class="back" onclick="navigate(\'albums\')">← Album</button><div class="eyebrow">TẠO ALBUM</div><h1 class="title">Kể câu chuyện của bạn</h1><div class="step">Bước '+w.step+'/3 · '+(['','Chủ đề & phong cách','Chọn nội dung','Dàn trang'][w.step])+'</div>'+body+'<div class="row" style="margin-top:25px">'+(w.step>1?'<button class="btn" onclick="wizard.step--;render()">← Quay lại</button>':'')+(w.step<3?'<button class="btn primary" onclick="wizard.step++;render()">Tiếp tục →</button>':'')+'</div></section>'}
-function toggleSelected(id,on){wizard.selected=on?[...wizard.selected,id]:wizard.selected.filter(x=>x!==id)}
+function visibleWizardMemories(){return db.memories.filter(m=>(m.title+' '+m.note).toLowerCase().includes(wizardSearch.toLowerCase()))}
+function wizardTile(m){
+ const src=mediaURLs[m.id]||m.media||'';
+ const visual=m.kind==='photo'&&src?'<img loading="lazy" src="'+src+'">':m.kind==='video'&&src?'<video muted playsinline preload="metadata" src="'+src+'"></video><span class="duration">▶</span>':m.kind==='note'?'📝':'📷';
+ const number=wizard.selected.indexOf(m.id)+1;
+ return '<button type="button" aria-pressed="'+(number>0)+'" aria-label="'+safe(m.title||'Kỷ niệm')+(number>0?' · Đã chọn':'')+'" class="library-tile '+(number>0?'is-selected':'')+'" onclick="wizardTap(\''+m.id+'\')">'+visual+'<span class="tick '+(number>0?'numbered':'')+'">'+(number>0?number:'')+'</span></button>';
+}
+function wizardTiles(){
+ const matches=visibleWizardMemories();
+ return matches.length?matches.map(wizardTile).join(''):'<div class="wizard-empty" style="grid-column:1/-1">'+(db.memories.length?'Không có kỷ niệm phù hợp. Hãy thử từ khóa khác.':'Bạn chưa có kỷ niệm. Hãy vào tab Kỷ niệm để tải ảnh hoặc video lên.')+'</div>';
+}
+function updateWizardGrid(){
+ const grid=$('wizardGrid');if(grid)grid.innerHTML=wizardTiles();
+ const count=$('wizardCount');if(count)count.textContent=wizard.selected.length+' đã chọn';
+ const all=$('wizardAllButton');
+ if(all){const found=visibleWizardMemories();all.textContent=found.length&&found.every(m=>wizard.selected.includes(m.id))?'Bỏ chọn tất cả':'Chọn tất cả'}
+}
+function wizardTap(id){
+ if(Date.now()<libraryBlockClickUntil)return;
+ const index=wizard.selected.indexOf(id);
+ if(index<0)wizard.selected.push(id);else wizard.selected.splice(index,1);
+ updateWizardGrid();
+}
+function toggleAllWizard(){
+ const found=visibleWizardMemories();
+ if(found.length&&found.every(m=>wizard.selected.includes(m.id)))wizard.selected=wizard.selected.filter(id=>!found.some(m=>m.id===id));
+ else for(const m of found)if(!wizard.selected.includes(m.id))wizard.selected.push(m.id);
+ updateWizardGrid();
+}
+
 function generateAlbum(){const selected=wizard.selected.map(id=>db.memories.find(m=>m.id===id)).filter(Boolean);const pages=[{title:wizard.title||wizard.prompt.slice(0,46)||'Chuyện của chúng mình',type:'cover',items:[]},...selected.map((m,i)=>({title:m.title,type:i%3===0?'collage':i%3===1?'story':'feature',items:[m.id]})),{title:'Những điều còn ở lại ♡',type:'ending',items:[]}];const a={id:'a'+Date.now(),title:wizard.title||wizard.prompt.slice(0,46)||'Album của tôi',prompt:wizard.prompt,theme:wizard.theme,style:wizard.style,items:wizard.selected.slice(),pages,accepted:false};db.albums.unshift(a);save();openAlbum(a.id);notify('Đã tạo bản dàn trang mô phỏng')}
 function openAlbum(id){activeAlbum=id;activePage=0;navigate('album')}
 function current(){return db.albums.find(a=>a.id===activeAlbum)}
