@@ -1,0 +1,71 @@
+/* Kỷ Niệm · Book Reader v2
+   Isolated reader/layout/lightbox styling. Edit this file without touching album data or collage templates. */
+.app:has(.openbook){max-width:970px}
+.openbook{max-width:900px;margin:auto}
+.openbook .book-reader-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.openbook .book-reader-top button{min-height:44px}
+.openbook .book-reader-subtitle{font-size:11px;letter-spacing:1.6px;color:#a27570;font-weight:700;margin:12px 0 7px}
+.openbook h1{font:clamp(24px,4.5vw,36px)/1.1 Georgia,serif;margin:3px 0 8px}
+.openbook .book-hint{font-size:12px;line-height:1.4;color:#8b7d74;margin:6px 0 13px}
+.openbook-stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;min-height:325px;aspect-ratio:1.47;background:#f6ece2;border-radius:4px 8px 8px 4px;isolation:isolate;perspective:1400px;box-shadow:0 4px 14px #56443a24,0 10px 23px #56443a14;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.openbook-stage:active{cursor:grabbing}
+.openbook-stage:before{content:"";position:absolute;z-index:9;left:calc(50% - 9px);top:0;bottom:0;width:18px;background:linear-gradient(90deg,transparent,#5d433122 37%,#34251c36 49%,#fffdf780 64%,transparent);pointer-events:none}
+.openbook-stage:after{content:"";position:absolute;inset:3px 5px -4px 5px;z-index:-1;border-radius:4px 8px 8px 4px;background:#dfd2c4;box-shadow:0 3px 2px #b6a79d6e;pointer-events:none}
+.openbook-page{min-width:0;position:relative;overflow:hidden;background:#fffaf3;container-type:inline-size}
+.openbook-page[data-side="left"]{border-radius:2px 0 0 2px;border-right:1px solid #ab8b7e33}
+.openbook-page[data-side="right"]{border-radius:0 6px 6px 0;border-left:1px solid #fffaf3}
+.openbook-page[aria-current="page"]{outline:1px solid #af807454;outline-offset:-2px}
+.openbook-page .book-sheet-content{width:100%;height:100%;overflow:hidden;background:#fffaf2;pointer-events:auto}
+.openbook-page .book-sheet-content .memory-composition{height:100%;width:100%;min-height:0!important;margin:0!important;aspect-ratio:auto;box-shadow:none!important;border-radius:0;transition:none;contain:layout paint}
+.openbook-page .memory-composition .photo-layer{border-width:2px;border-bottom-width:3px;box-shadow:0 2px 5px #3c2c2331;padding:0;margin:0;appearance:none;-webkit-appearance:none;color:inherit}
+.openbook-page .memory-composition .slice-title{font-size:clamp(15px,10cqw,40px)!important;line-height:1.05;letter-spacing:-.03em}
+.openbook-page .memory-composition .slice-caption{font-size:clamp(8px,4.2cqw,15px)!important;max-width:80%}
+.openbook-page .memory-composition .slice-decor{font-size:clamp(18px,10cqw,38px)}
+.openbook-page .memory-composition .slice-kicker{font-size:clamp(6px,3cqw,11px);letter-spacing:1.4px}
+.openbook-page .memory-composition .slice-tape{display:none}
+.openbook-page .memory-composition .slice-texture{opacity:.11}
+.openbook-page .photo-layer[data-book-photo],.openbook-page .chapter-photo[data-book-photo]{cursor:zoom-in}
+.openbook-page .photo-layer[data-book-photo]:focus-visible,.openbook-page .chapter-photo[data-book-photo]:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.openbook-page .media-video-placeholder{height:100%;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;background:linear-gradient(135deg,#eacfc7,#b5a4a4);color:#674e54;font:20px Georgia,serif;text-align:center}
+.openbook-page .media-video-placeholder small{font:12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:90%}
+.openbook-page .book-page-month,.openbook-page .book-page-chapter,.openbook-page .book-page-ending{height:100%;padding:clamp(12px,5cqw,36px)}
+.openbook-page .book-page-month h2,.openbook-page .book-page-chapter h2,.openbook-page .book-page-ending h2{font-size:clamp(22px,11cqw,52px);overflow-wrap:anywhere}
+.openbook-page .book-page-month .month-symbol,.openbook-page .book-page-chapter .chapter-symbol{font-size:clamp(24px,12cqw,54px)}
+.openbook-page .book-page-month p,.openbook-page .book-page-chapter .chapter-mood{font-size:clamp(10px,4cqw,16px)}
+.openbook-page .book-page-chapter .chapter-photos{height:clamp(42px,32cqw,150px);width:100%;gap:3px;display:flex;align-items:center;justify-content:center}
+.openbook-page .book-page-chapter .chapter-photo{width:31%;height:88%;transform:rotate(-5deg);border:2px solid #fffaf5;padding:0;background:#f4e6d7;box-shadow:0 2px 5px #0002;overflow:hidden}
+.openbook-page .book-page-chapter .chapter-photo:nth-child(2){transform:rotate(4deg) translateY(5px)}
+.openbook-page .book-page-chapter .chapter-photo img{display:block;width:100%;height:100%;object-fit:cover;transform:none}
+.openbook-page .book-page-ending .ending-flower{font-size:clamp(35px,20cqw,80px)}
+.openbook-page .book-page-ending p{font-size:clamp(10px,4cqw,16px)}
+.openbook-page .book-page-chapter .chapter-eyebrow,.openbook-page .book-page-month .month-small{font-size:clamp(7px,3cqw,11px)}
+.openbook-turn-leaf{position:absolute;z-index:12;top:0;bottom:0;width:50%;overflow:hidden;transform-style:preserve-3d;backface-visibility:visible;-webkit-backface-visibility:visible;pointer-events:none;will-change:transform;background:linear-gradient(90deg,#fffaf3,#f2e7da 75%,#f9f3ea);box-shadow:0 2px 9px #493e3930}
+.openbook-turn-leaf[data-direction="1"]{right:0;transform-origin:left center}
+.openbook-turn-leaf[data-direction="-1"]{left:0;transform-origin:right center}
+.openbook-turn-leaf:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#33201814,transparent 22%,transparent 73%,#fffefc80);pointer-events:none}
+.openbook-turn-leaf .leaf-motif{position:absolute;inset:0;display:grid;place-items:center;color:#c2a49b;font:italic clamp(12px,4cqw,25px) Georgia,serif}
+.openbook-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 12px}
+.openbook-controls button{min-height:44px;min-width:87px}
+.openbook-count{color:#8d7770;font-size:12px;font-weight:700;text-align:center}
+.openbook-tools{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.openbook-tools button{min-height:44px;flex:1}
+.openbook .book-reader-top .btn{padding:11px 13px}
+.openbook-page-empty{height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#fffaf2,#eee3d7);color:#aa8e85;font:italic 25px Georgia,serif}
+.openbook-section-caption{margin:0 0 8px;color:#976e68;font:italic 15px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.book-photo-overlay{position:fixed;inset:0;z-index:85;background:#101011f5;display:flex;flex-direction:column;color:#fff;overflow:hidden}
+.book-photo-toolbar{padding:calc(13px + env(safe-area-inset-top)) 16px 9px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.book-photo-toolbar button,.book-photo-footer button{min-width:44px;min-height:44px;border-radius:23px;color:white;background:#ffffff25;font-size:20px}
+.book-photo-toolbar span{font-size:13px;max-width:70%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.book-photo-viewport{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;touch-action:none;overscroll-behavior:contain}
+.book-photo-media{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;transform-origin:center;will-change:transform;touch-action:none;pointer-events:auto}
+.book-photo-media video{width:100%}
+.book-photo-footer{display:flex;align-items:center;gap:10px;padding:10px 14px calc(20px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#0005)}
+.book-photo-footer .photo-info{flex:1;min-width:0;font-size:13px}
+.book-photo-footer .photo-info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.book-photo-footer .photo-info small{display:block;color:#c6c1c1;font-size:11px;margin-top:3px}
+.book-photo-overlay button:disabled{opacity:.35}
+.book-photo-toolbar button:focus-visible,.book-photo-footer button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+body:has(.book-photo-overlay){overflow:hidden}
+@media(min-width:700px){.openbook-stage{min-height:520px}}
+@media(max-width:450px){.openbook-stage{min-height:310px;aspect-ratio:1.18}.openbook{margin:0 -5px}.openbook .book-hint{font-size:11px}.openbook h1{font-size:25px}.openbook-page .memory-composition .slice-title{font-size:clamp(15px,9.5cqw,22px)!important}.openbook-page .memory-composition .slice-caption{font-size:clamp(8px,4.2cqw,11px)!important}}
+@media(prefers-reduced-motion:reduce){.openbook-turn-leaf{display:none!important}.book-photo-media{will-change:auto}}
