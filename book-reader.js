@@ -3,7 +3,7 @@
    All original album data and collage rendering remain owned by the app. */
 (function(){
 "use strict";
-const S={main:false,pages:[],start:0,selected:0,busy:false,drag:null,pointer:null,timer:null,raf:0,ignoreClickUntil:0,modal:null,home:false,homePageId:null,homePageCount:0,photoIds:[],photoPos:0,scale:1,x:0,y:0,pointers:new Map(),pinchStart:null};
+const S={main:false,pages:[],start:0,selected:0,busy:false,flip:null,drag:null,pointer:null,timer:null,raf:0,ignoreClickUntil:0,modal:null,home:false,homePageId:null,homePageCount:0,photoIds:[],photoPos:0,scale:1,x:0,y:0,pointers:new Map(),pinchStart:null};
 const $b=id=>document.getElementById(id);
 const escapeText=x=>String(x??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pageLabel=(t,defaultName='Khoảnh khắc đáng nhớ')=>window.KyniemLabels?.title?.(t,defaultName)||defaultName;
@@ -98,39 +98,95 @@ function clearFlip(){
  if(S.timer){clearTimeout(S.timer);S.timer=null}
  if(S.raf){cancelAnimationFrame(S.raf);S.raf=0}
 }
-function startFlip(direction,interactive=false){
- if(S.busy)return null;
+/* One turning *sheet*, with real content on both faces.
+   Only the destination page under the sheet is exposed while dragging. */
+function pageElement(index,side){
+ const holder=document.createElement('div');
+ holder.innerHTML=paper(index,side);
+ const page=holder.firstElementChild;
+ if(!page)throw Error('Cannot build book page');
+ // Both upcoming pages must start loading before the finger uncovers them.
+ page.querySelectorAll('img').forEach(img=>{img.loading='eager';img.decoding='async'});
+ return page;
+}
+function paintFlip(f,progress){
+ f.progress=Math.max(0,Math.min(1,progress));
+ f.leaf.style.transform='rotateY('+((f.direction===1?-180:180)*f.progress)+'deg)';
+ f.leaf.style.setProperty('--flip-progress',f.progress.toFixed(3));
+}
+function startFlip(direction){
+ if(S.busy||S.modal)return null;
  const next=S.start+direction*2;
  if(next<0||next>=S.pages.length)return null;
- const stage=$b('openbookStage');if(!stage)return null;
+ const stage=$b('openbookStage');
+ if(!stage)return null;
  if(reduced()){finalize(next);return null}
- S.busy=true;
+ const fromSide=direction===1?'right':'left';
+ const toSide=direction===1?'left':'right';
+ const oldPage=stage.querySelector('.openbook-page[data-side="'+fromSide+'"]');
+ const opposite=stage.querySelector('.openbook-page[data-side="'+toSide+'"]');
+ if(!oldPage||!opposite)return null;
+ const underIndex=direction===1?next+1:next;
+ const backIndex=direction===1?next:next+1;
+ // Create only the 2 unseen pages; existing pages are moved, not cloned.
+ const underPage=pageElement(underIndex,fromSide);
+ const backPage=pageElement(backIndex,toSide);
  const leaf=document.createElement('div');
- leaf.className='openbook-turn-leaf';leaf.dataset.direction=String(direction);
- leaf.innerHTML='<span class="leaf-motif">kỷniệm ✿</span>';
- leaf.style.transform='rotateY(0deg)';
+ leaf.className='openbook-turn-leaf';
+ leaf.dataset.direction=String(direction);
+ leaf.setAttribute('aria-hidden','true');
+ const front=document.createElement('div');
+ front.className='book-leaf-face book-leaf-front';
+ const back=document.createElement('div');
+ back.className='book-leaf-face book-leaf-back';
+ oldPage.replaceWith(underPage);
+ front.appendChild(oldPage);
+ back.appendChild(backPage);
+ leaf.append(front,back);
  stage.appendChild(leaf);
- return {leaf,next,direction,progress:0};
+ const f={leaf,oldPage,opposite,underPage,backPage,next,direction,progress:0,settled:false};
+ S.busy=true;S.flip=f;
+ paintFlip(f,0);
+ return f;
 }
 function finishFlip(f,complete){
- const leaf=f.leaf;leaf.style.transition='transform 260ms cubic-bezier(.2,.7,.25,1)';
- // Keep the rest of the reader and the original images stationary.
- leaf.style.transform='rotateY('+(complete?(f.direction>0?-176:176):0)+'deg)';
- let ended=false;
+ if(!f||f.settled||S.flip!==f)return;
+ if(S.raf){cancelAnimationFrame(S.raf);S.raf=0;paintFlip(f,f.progress)}
+ const duration=Math.round(150+Math.abs((complete?1:0)-f.progress)*320);
+ f.leaf.style.transition='transform '+duration+'ms cubic-bezier(.22,.69,.25,1)';
+ // As the front rotates away, the next spread has *already* appeared below it.
+ const end=complete?1:0;
+ paintFlip(f,end);
  const done=()=>{
-  if(ended)return;ended=true;clearFlip();
-  leaf.remove();
-  S.busy=false;S.drag=null;
-  if(complete)finalize(f.next);
+  if(f.settled||S.flip!==f)return;
+  f.settled=true;clearFlip();
+  if(complete){
+   // Reuse the revealed page + the leaf's back face: no reader re-render.
+   f.opposite.replaceWith(f.backPage);
+   S.start=f.next;
+   S.selected=Math.min(f.next+1,S.pages.length-1);
+  }else{
+   // Return the very same DOM page on a canceled drag.
+   f.underPage.replaceWith(f.oldPage);
+  }
+  f.leaf.remove();S.flip=null;S.busy=false;S.drag=null;
+  if(complete)updateControls();else setSelected(S.selected);
  };
- leaf.addEventListener('transitionend',ev=>{if(ev.target===leaf&&ev.propertyName==='transform')done()},{once:true});
- S.timer=setTimeout(done,400);
+ f.leaf.addEventListener('transitionend',e=>{
+  if(e.target===f.leaf&&e.propertyName==='transform')done()
+ },{once:true});
+ S.timer=setTimeout(done,duration+100);
 }
 function turn(direction){
  if(S.busy||S.modal)return;
  const f=startFlip(direction);
  if(!f)return;
- S.raf=requestAnimationFrame(()=>{f.leaf.getBoundingClientRect();finishFlip(f,true)});
+ S.raf=requestAnimationFrame(()=>{
+  S.raf=0;
+  // Guarantee the browser paints the original sheet before animating it.
+  f.leaf.getBoundingClientRect();
+  finishFlip(f,true);
+ });
 }
 function onDown(e){
  if(S.busy||S.modal||e.target.closest('button,a,input,textarea,select,video'))return;
@@ -146,9 +202,13 @@ function onMove(e){
   S.drag=f;
   try{$b('openbookStage').setPointerCapture(e.pointerId)}catch(err){}
  }
- const f=S.drag;f.progress=Math.min(.985,Math.max(0,(f.direction===1?-dx:dx)/Math.max(1,$b('openbookStage').clientWidth*.63)));
- if(S.raf)cancelAnimationFrame(S.raf);
- S.raf=requestAnimationFrame(()=>{if(S.drag===f)f.leaf.style.transform='rotateY('+(f.direction>0?-176:176)*f.progress+'deg)'});
+ const f=S.drag;
+ const distance=f.direction===1?-dx:dx;
+ // Outer-edge to outer-edge of the *open* book maps to 0–180 degrees.
+ f.progress=Math.max(0,Math.min(1,distance/Math.max(1,$b('openbookStage').clientWidth*.94)));
+ if(!S.raf)S.raf=requestAnimationFrame(()=>{
+  S.raf=0;if(S.drag===f)paintFlip(f,f.progress);
+ });
 }
 function onUp(e){
  const p=S.pointer;if(!p||p.id!==e.pointerId)return;
@@ -156,14 +216,13 @@ function onUp(e){
  const dx=e.clientX-p.x,dy=e.clientY-p.y;
  if(S.drag){
   const f=S.drag;S.drag=null;S.ignoreClickUntil=Date.now()+350;
-  const commit=(f.direction===1?-dx:dx)>Math.max(56,$b('openbookStage').clientWidth*.13);
-  if(S.raf){cancelAnimationFrame(S.raf);S.raf=0}
+  const commit=(f.direction===1?-dx:dx)>Math.max(48,$b('openbookStage').clientWidth*.13);
   finishFlip(f,commit);
  }else if(Math.abs(dx)>52&&Math.abs(dx)>Math.abs(dy)*1.25)turn(dx<0?1:-1);
 }
 function onCancel(){
  S.pointer=null;
- if(S.drag){const f=S.drag;S.drag=null;if(S.raf)cancelAnimationFrame(S.raf);finishFlip(f,false)}
+ if(S.drag){const f=S.drag;S.drag=null;finishFlip(f,false)}
 }
 function onClick(e){
  if(Date.now()<S.ignoreClickUntil)return;
@@ -177,7 +236,7 @@ function onKey(e){
  if(photo&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openPhoto(photo.dataset.bookPhoto,Number(photo.closest('[data-page-index]')?.dataset.pageIndex??S.selected))}
 }
 function mount(){
- clearFlip();S.busy=false;S.drag=null;S.pointer=null;
+ clearFlip();S.flip=null;S.busy=false;S.drag=null;S.pointer=null;
  const stage=$b('openbookStage');if(!stage)return;
  stage.addEventListener('dragstart',e=>e.preventDefault());
  stage.addEventListener('pointerdown',onDown);
@@ -188,7 +247,9 @@ function mount(){
  stage.addEventListener('keydown',onKey);
 }
 function destroy(){
- clearFlip();S.busy=false;S.drag=null;S.pointer=null;closePhoto();
+ clearFlip();
+ if(S.flip){S.flip.leaf.remove();S.flip=null}
+ S.busy=false;S.drag=null;S.pointer=null;closePhoto();
 }
 function pagePhotoIds(page){
  return (page?.items||[]).filter(id=>{const m=db.memories.find(x=>x.id===id);return m&&(m.kind==='photo'||m.kind==='video')&&(mediaURLs[m.id]||m.media)});
