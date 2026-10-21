@@ -6,11 +6,13 @@
 const S={main:false,pages:[],start:0,selected:0,busy:false,drag:null,pointer:null,timer:null,raf:0,ignoreClickUntil:0,modal:null,home:false,homePageId:null,homePageCount:0,photoIds:[],photoPos:0,scale:1,x:0,y:0,pointers:new Map(),pinchStart:null};
 const $b=id=>document.getElementById(id);
 const escapeText=x=>String(x??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pageLabel=(t,defaultName='Khoảnh khắc đáng nhớ')=>window.KyniemLabels?.title?.(t,defaultName)||defaultName;
+const memoryLabel=m=>window.KyniemLabels?.memoryTitle?.(m)||'Khoảnh khắc đáng nhớ';
 const reduced=()=>!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 const at=i=>i>=0&&i<S.pages.length?S.pages[i]:null;
 function paper(i,side){
  const page=at(i),contents=page?bookPaper(page,i,S.main):'<div class="book-sheet-content"><div class="openbook-page-empty">✿</div></div>';
- return '<div class="openbook-page" data-side="'+side+'" data-page-index="'+i+'" tabindex="0" role="group" aria-label="'+(page?'Trang '+(i+1)+': '+escapeText(page.title||'Kỷ niệm'):'Trang trống')+'"'+(i===S.selected?' aria-current="page"':'')+'>'+contents+'</div>';
+ return '<div class="openbook-page" data-side="'+side+'" data-page-index="'+i+'" tabindex="0" role="group" aria-label="'+(page?'Trang '+(i+1)+': '+escapeText(pageLabel(page.title)):'Trang trống')+'"'+(i===S.selected?' aria-current="page"':'')+'>'+contents+'</div>';
 }
 function spread(i){
  return paper(i,'left')+paper(i+1,'right');
@@ -23,7 +25,7 @@ function render(main){
  const pages=bookPages(main),original=main?chroniclePage:activePage;
  if(!pages.length)return '<section class="section"><button class="back" onclick="goBackBook()">← Quay lại</button><p class="muted">Album này chưa có trang nào.</p></section>';
  S.home=false;S.main=main;S.pages=pages;S.selected=Math.max(0,Math.min(original,pages.length-1));S.start=Math.floor(S.selected/2)*2;
- const album=main?null:current(),title=main?'Cuốn Kỷ Niệm Của Tôi':album.title;
+ const album=main?null:current(),title=main?'Cuốn Kỷ Niệm Của Tôi':pageLabel(album.title,'Album kỷ niệm');
  const label=main?'CUỐN SÁCH TỰ CẬP NHẬT':album.accepted?'ALBUM ĐÃ HOÀN THÀNH':'BẢN NHÁP ALBUM';
  return '<section class="section openbook"><div class="book-reader-top">'+
  '<button class="back" onclick="goBackBook()">← Quay lại</button>'+
@@ -34,7 +36,7 @@ function render(main){
  '<div class="openbook-controls"><button id="openbookPrev" class="btn" onclick="BookReader.turn(-1)" '+(S.start===0?'disabled':'')+'>← Trước</button>'+
  '<span class="openbook-count" id="openbookCount">'+(S.start+1)+'–'+Math.min(S.start+2,S.pages.length)+' / '+S.pages.length+'</span>'+
  '<button id="openbookNext" class="btn" onclick="BookReader.turn(1)" '+(S.start+2>=S.pages.length?'disabled':'')+'>Sau →</button></div>'+
- '<p class="openbook-section-caption" id="openbookPageLabel">'+escapeText(at(S.selected)?.title||'')+'</p>'+
+ '<p class="openbook-section-caption" id="openbookPageLabel">'+escapeText(pageLabel(at(S.selected)?.title,''))+'</p>'+
  '<div class="openbook-tools" id="openbookActions">'+(main?mainActions(at(S.selected)):'<button class="btn" onclick="navigate(&quot;editor&quot;)">✎ Chỉnh sửa trang</button>'+(album.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>'))+'</div>'+
  '<p class="book-hint" style="text-align:center;margin-top:14px">PC: kéo bằng chuột hoặc dùng ← → · Điện thoại: vuốt ngang trang giấy</p></section>';
 }
@@ -52,22 +54,13 @@ function renderHome(knownPages){
  S.start=Math.floor(S.selected/2)*2;
  chroniclePage=S.selected;
  S.homePageId=pages[S.selected]?.id||null;S.homePageCount=pages.length;
- const hasStory=lastStory>=0;
- return '<section class="openbook home-book-feature" aria-label="Cuốn Kỷ Niệm Của Tôi đang mở">'+
- '<div class="home-book-heading"><div><div class="home-book-eyebrow">✿ CUỐN SÁCH CỦA BẠN</div>'+
- '<h2>Cuốn Kỷ Niệm <em>Của Tôi</em></h2></div>'+
- '<button type="button" class="home-book-expand" onclick="BookReader.expand()" aria-label="Xem cuốn sách ở chế độ đọc đầy đủ">Mở rộng ↗</button></div>'+
- '<div class="home-book-subheading">'+(hasStory?'Cuốn sách lớn lên từ từng khoảnh khắc bạn lưu.':'Cuốn sách đang chờ trang đầu tiên của bạn.')+'</div>'+
- '<div id="openbookStage" class="openbook-stage" role="region" aria-label="Vuốt để lật các trang cuốn Kỷ Niệm">'+spread(S.start)+'</div>'+
- '<div class="openbook-controls home-book-controls">'+
- '<button id="openbookPrev" class="btn" type="button" onclick="BookReader.turn(-1)" '+(S.start===0?'disabled':'')+' aria-label="Lật về hai trang trước">← Trước</button>'+
- '<span class="openbook-count" id="openbookCount">'+(S.start+1)+'–'+Math.min(S.start+2,pages.length)+' / '+pages.length+'</span>'+
- '<button id="openbookNext" class="btn" type="button" onclick="BookReader.turn(1)" '+(S.start+2>=pages.length?'disabled':'')+' aria-label="Lật sang hai trang tiếp theo">Sau →</button></div>'+
- '<p class="openbook-section-caption" id="openbookPageLabel">'+escapeText(pages[S.selected]?.title||'Cuốn sách của tôi')+'</p>'+
- (hasStory?'<p class="home-book-gesture">Vuốt ngang để lật trang · Chạm ảnh để xem lớn</p>':
- '<div class="home-book-empty"><p>Chọn một vài tấm ảnh, Kỷ Niệm sẽ bắt đầu viết cuốn sách này cùng bạn.</p>'+
- '<button type="button" class="btn primary" onclick="startMemory()">＋ Lưu kỷ niệm đầu tiên</button></div>')+
- '</section>';
+ return '<section class="openbook home-book-feature" aria-label="Cuốn album Kỷ Niệm đang mở">'+
+ '<div class="home-book-frame">'+
+ '<div id="openbookStage" class="openbook-stage" role="region" aria-label="Vuốt để lật cuốn kỷ niệm">'+spread(S.start)+'</div>'+
+ '<button id="openbookPrev" type="button" class="home-book-nav home-book-nav-prev" aria-label="Lật về trang trước" onclick="BookReader.turn(-1)" '+(S.start===0?'disabled':'')+'>‹</button>'+
+ '<button id="openbookNext" type="button" class="home-book-nav home-book-nav-next" aria-label="Lật sang trang sau" onclick="BookReader.turn(1)" '+(S.start+2>=pages.length?'disabled':'')+'>›</button>'+
+ (lastStory<0?'<button type="button" class="home-book-add" aria-label="Lưu kỷ niệm đầu tiên" onclick="startMemory()">＋</button>':'')+
+ '</div></section>';
 }
 function expand(){
  if(!S.home)return;
@@ -82,7 +75,7 @@ function setSelected(i){
  if(S.home){S.homePageId=at(i)?.id||null;S.homePageCount=S.pages.length}
  if(S.main)chroniclePage=i;else activePage=i;
  const stage=$b('openbookStage');if(stage)stage.querySelectorAll('.openbook-page').forEach(el=>{if(Number(el.dataset.pageIndex)===i)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});
- const title=$b('openbookPageLabel');if(title)title.textContent=at(i)?.title||'';
+ const title=$b('openbookPageLabel');if(title)title.textContent=pageLabel(at(i)?.title,'');
  const actions=$b('openbookActions');if(actions&&S.main)actions.innerHTML=mainActions(at(i));
 }
 function updateControls(){
@@ -214,13 +207,13 @@ function renderPhoto(){
  const id=S.photoIds[S.photoPos],m=db.memories.find(x=>x.id===id);if(!m){closePhoto();return}
  const src=mediaURLs[id]||m.media||'';
  const visual=m.kind==='video'?'<video class="book-photo-media" id="bookZoomMedia" src="'+src+'" controls playsinline preload="metadata"></video>':
- '<img class="book-photo-media" id="bookZoomMedia" src="'+src+'" alt="'+escapeText(m.title||'Ảnh kỷ niệm')+'" draggable="false">';
+ '<img class="book-photo-media" id="bookZoomMedia" src="'+src+'" alt="'+escapeText(memoryLabel(m))+'" draggable="false">';
  host.innerHTML='<div class="book-photo-overlay" role="dialog" aria-modal="true" aria-label="Xem ảnh từ trang album">'+
  '<div class="book-photo-toolbar"><button type="button" onclick="BookReader.closePhoto()" aria-label="Đóng xem ảnh">✕</button>'+
- '<span>'+escapeText(m.title||'Một kỷ niệm')+'</span><span style="font-size:12px">'+(S.photoPos+1)+' / '+S.photoIds.length+'</span></div>'+
+ '<span>'+escapeText(memoryLabel(m))+'</span><span style="font-size:12px">'+(S.photoPos+1)+' / '+S.photoIds.length+'</span></div>'+
  '<div class="book-photo-viewport" id="bookPhotoViewport">'+visual+'</div>'+
  '<div class="book-photo-footer"><button type="button" onclick="BookReader.photoStep(-1)" '+(S.photoPos===0?'disabled':'')+' aria-label="Ảnh trước">‹</button>'+
- '<div class="photo-info"><b>'+escapeText(m.title||'Ảnh kỷ niệm')+'</b><small>'+escapeText(m.note||m.date||'')+'</small></div>'+
+ '<div class="photo-info"><b>'+escapeText(memoryLabel(m))+'</b><small>'+escapeText(m.note||m.date||'')+'</small></div>'+
  (m.kind==='photo'?'<button type="button" onclick="BookReader.zoom(-1)" aria-label="Thu nhỏ">−</button><button type="button" onclick="BookReader.zoom(1)" aria-label="Phóng to">＋</button>':'')+
  '<button type="button" onclick="BookReader.photoStep(1)" '+(S.photoPos===S.photoIds.length-1?'disabled':'')+' aria-label="Ảnh tiếp theo">›</button></div></div>';
  const viewport=$b('bookPhotoViewport');if(viewport){
