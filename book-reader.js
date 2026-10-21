@@ -152,6 +152,8 @@ function startFlip(direction){
 function finishFlip(f,complete){
  if(!f||f.settled||S.flip!==f)return;
  if(S.raf){cancelAnimationFrame(S.raf);S.raf=0;paintFlip(f,f.progress)}
+ // Commit the finger's last position before the soft settle animation starts.
+ f.leaf.getBoundingClientRect();
  const duration=Math.round(150+Math.abs((complete?1:0)-f.progress)*320);
  f.leaf.style.transition='transform '+duration+'ms cubic-bezier(.22,.69,.25,1)';
  // As the front rotates away, the next spread has *already* appeared below it.
@@ -197,7 +199,7 @@ function onMove(e){
  const dx=e.clientX-p.x,dy=e.clientY-p.y;
  if(!S.drag){
   if(Math.abs(dx)<18||Math.abs(dx)<Math.abs(dy)*1.2)return;
-  const dir=dx<0?1:-1,f=startFlip(dir,true);
+  const dir=dx<0?1:-1,f=startFlip(dir);
   if(!f){S.pointer=null;return}
   S.drag=f;
   try{$b('openbookStage').setPointerCapture(e.pointerId)}catch(err){}
