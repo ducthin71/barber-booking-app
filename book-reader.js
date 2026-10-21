@@ -3,7 +3,7 @@
    All original album data and collage rendering remain owned by the app. */
 (function(){
 "use strict";
-const S={main:false,pages:[],start:0,selected:0,busy:false,drag:null,pointer:null,timer:null,raf:0,ignoreClickUntil:0,modal:null,photoIds:[],photoPos:0,scale:1,x:0,y:0,pointers:new Map(),pinchStart:null};
+const S={main:false,pages:[],start:0,selected:0,busy:false,drag:null,pointer:null,timer:null,raf:0,ignoreClickUntil:0,modal:null,home:false,homePageId:null,homePageCount:0,photoIds:[],photoPos:0,scale:1,x:0,y:0,pointers:new Map(),pinchStart:null};
 const $b=id=>document.getElementById(id);
 const escapeText=x=>String(x??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reduced=()=>!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -22,7 +22,7 @@ function mainActions(page){
 function render(main){
  const pages=bookPages(main),original=main?chroniclePage:activePage;
  if(!pages.length)return '<section class="section"><button class="back" onclick="goBackBook()">← Quay lại</button><p class="muted">Album này chưa có trang nào.</p></section>';
- S.main=main;S.pages=pages;S.selected=Math.max(0,Math.min(original,pages.length-1));S.start=Math.floor(S.selected/2)*2;
+ S.home=false;S.main=main;S.pages=pages;S.selected=Math.max(0,Math.min(original,pages.length-1));S.start=Math.floor(S.selected/2)*2;
  const album=main?null:current(),title=main?'Cuốn Kỷ Niệm Của Tôi':album.title;
  const label=main?'CUỐN SÁCH TỰ CẬP NHẬT':album.accepted?'ALBUM ĐÃ HOÀN THÀNH':'BẢN NHÁP ALBUM';
  return '<section class="section openbook"><div class="book-reader-top">'+
@@ -38,9 +38,47 @@ function render(main){
  '<div class="openbook-tools" id="openbookActions">'+(main?mainActions(at(S.selected)):'<button class="btn" onclick="navigate(&quot;editor&quot;)">✎ Chỉnh sửa trang</button>'+(album.accepted?'':'<button class="btn primary" onclick="acceptAlbum()">✓ Hoàn thành album</button>'))+'</div>'+
  '<p class="book-hint" style="text-align:center;margin-top:14px">PC: kéo bằng chuột hoặc dùng ← → · Điện thoại: vuốt ngang trang giấy</p></section>';
 }
+
+/* Homepage is another view of this very same reader, not a second page-turn engine.
+   Default to the newest story spread so the user sees their own photographs first. */
+function renderHome(knownPages){
+ const pages=Array.isArray(knownPages)?knownPages:bookPages(true);
+ S.main=true;S.home=true;S.pages=pages;
+ const prev=S.homePageId&&S.homePageCount===pages.length?pages.findIndex(p=>p.id===S.homePageId):-1;
+ let lastStory=-1;
+ for(let i=pages.length-1;i>=0;i--)if(pages[i].type==='chronicle-story'){lastStory=i;break}
+ const selected=prev>=0?prev:lastStory>=0?lastStory:0;
+ S.selected=Math.max(0,Math.min(selected,pages.length-1));
+ S.start=Math.floor(S.selected/2)*2;
+ S.homePageId=pages[S.selected]?.id||null;S.homePageCount=pages.length;
+ const hasStory=lastStory>=0;
+ return '<section class="openbook home-book-feature" aria-label="Cuốn Kỷ Niệm Của Tôi đang mở">'+
+ '<div class="home-book-heading"><div><div class="home-book-eyebrow">✿ CUỐN SÁCH CỦA BẠN</div>'+
+ '<h2>Cuốn Kỷ Niệm <em>Của Tôi</em></h2></div>'+
+ '<button type="button" class="home-book-expand" onclick="BookReader.expand()" aria-label="Xem cuốn sách ở chế độ đọc đầy đủ">Mở rộng ↗</button></div>'+
+ '<div class="home-book-subheading">'+(hasStory?'Cuốn sách lớn lên từ từng khoảnh khắc bạn lưu.':'Cuốn sách đang chờ trang đầu tiên của bạn.')+'</div>'+
+ '<div id="openbookStage" class="openbook-stage" role="region" aria-label="Vuốt để lật các trang cuốn Kỷ Niệm">'+spread(S.start)+'</div>'+
+ '<div class="openbook-controls home-book-controls">'+
+ '<button id="openbookPrev" class="btn" type="button" onclick="BookReader.turn(-1)" '+(S.start===0?'disabled':'')+' aria-label="Lật về hai trang trước">← Trước</button>'+
+ '<span class="openbook-count" id="openbookCount">'+(S.start+1)+'–'+Math.min(S.start+2,pages.length)+' / '+pages.length+'</span>'+
+ '<button id="openbookNext" class="btn" type="button" onclick="BookReader.turn(1)" '+(S.start+2>=pages.length?'disabled':'')+' aria-label="Lật sang hai trang tiếp theo">Sau →</button></div>'+
+ '<p class="openbook-section-caption" id="openbookPageLabel">'+escapeText(pages[S.selected]?.title||'Cuốn sách của tôi')+'</p>'+
+ (hasStory?'<p class="home-book-gesture">Vuốt ngang để lật trang · Chạm ảnh để xem lớn</p>':
+ '<div class="home-book-empty"><p>Chọn một vài tấm ảnh, Kỷ Niệm sẽ bắt đầu viết cuốn sách này cùng bạn.</p>'+
+ '<button type="button" class="btn primary" onclick="startMemory()">＋ Lưu kỷ niệm đầu tiên</button></div>')+
+ '</section>';
+}
+function expand(){
+ if(!S.home)return;
+ readerOrigin='home';
+ chroniclePage=S.selected;
+ navigate('chronicle');
+}
+
 function setSelected(i){
  if(i<0||i>=S.pages.length)return;
  S.selected=i;
+ if(S.home){S.homePageId=at(i)?.id||null;S.homePageCount=S.pages.length}
  if(S.main)chroniclePage=i;else activePage=i;
  const stage=$b('openbookStage');if(stage)stage.querySelectorAll('.openbook-page').forEach(el=>{if(Number(el.dataset.pageIndex)===i)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});
  const title=$b('openbookPageLabel');if(title)title.textContent=at(i)?.title||'';
@@ -250,5 +288,5 @@ document.addEventListener('keydown',e=>{
  else if(e.key==='ArrowLeft'){e.preventDefault();e.stopImmediatePropagation();photoStep(-1)}
  else if(e.key==='ArrowRight'){e.preventDefault();e.stopImmediatePropagation();photoStep(1)}
 },true);
-window.BookReader={render,mount,destroy,turn,openPhoto,closePhoto,photoStep,zoom,isPhotoOpen:()=>S.modal};
+window.BookReader={render,renderHome,expand,mount,destroy,turn,openPhoto,closePhoto,photoStep,zoom,isPhotoOpen:()=>S.modal};
 })();
