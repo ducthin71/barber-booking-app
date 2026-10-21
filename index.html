@@ -431,10 +431,10 @@ function renderChronicleCard(){
 
 function homePageFeed(){
  const raw=[];
- const living=chronicleModel();for(let i=0;i<living.pages.length;i++){const p=living.pages[i];if(p.type==='chronicle-story')raw.push({a:{id:'lifebook',title:'Cuốn Kỷ Niệm Của Tôi',theme:p.theme,style:p.style,items:[],prompt:''},p,i,main:true,demo:0})}
- for(const a of db.albums)for(let i=0;i<(a.pages||[]).length;i++){const p=a.pages[i];if(p.type!=='ending')raw.push({a,p,i,demo:0})}
+ const living=chronicleModel();for(let i=living.pages.length-1;i>=0&&raw.length<28;i--){const p=living.pages[i];if(p.type==='chronicle-story')raw.push({a:{id:'lifebook',title:'Cuốn Kỷ Niệm Của Tôi',theme:p.theme,style:p.style,items:[],prompt:''},p,i,main:true,demo:0})}
+ for(const a of db.albums){if(raw.length>=48)break;for(let i=0;i<(a.pages||[]).length&&raw.length<48;i++){const p=a.pages[i];if(p.type!=='ending')raw.push({a,p,i,demo:0})}}
  if(!raw.length&&db.memories.length){
-  const arr=db.memories.slice(0,24);for(let i=0;i<arr.length;i+=4){
+  const excluded=new Set(chronicleSettings().excludedIds),arr=db.memories.filter(m=>!excluded.has(m.id)).slice(0,24);for(let i=0;i<arr.length;i+=4){
    const group=arr.slice(i,i+4);const a={id:'',title:'Những ngày đáng nhớ',theme:['tet','love','travel'][i/4%3],prompt:'',items:group.map(x=>x.id),pages:[]};
    raw.push({a,p:{title:group[0]?.title||'Những ngày đáng nhớ',type:'collage',items:a.items},i:i/4,demo:0});
   }
