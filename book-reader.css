@@ -39,11 +39,39 @@
 .openbook-page .book-page-ending .ending-flower{font-size:clamp(35px,20cqw,80px)}
 .openbook-page .book-page-ending p{font-size:clamp(10px,4cqw,16px)}
 .openbook-page .book-page-chapter .chapter-eyebrow,.openbook-page .book-page-month .month-small{font-size:clamp(7px,3cqw,11px)}
-.openbook-turn-leaf{position:absolute;z-index:12;top:0;bottom:0;width:50%;overflow:hidden;transform-style:preserve-3d;backface-visibility:visible;-webkit-backface-visibility:visible;pointer-events:none;will-change:transform;background:linear-gradient(90deg,#fffaf3,#f2e7da 75%,#f9f3ea);box-shadow:0 2px 9px #493e3930}
+/* A real two-faced paper sheet. The next page is visible beneath it immediately. */
+.openbook-turn-leaf{
+ position:absolute;z-index:12;top:0;bottom:0;width:50%;
+ pointer-events:none;transform-style:preserve-3d;
+ -webkit-transform-style:preserve-3d;
+ will-change:transform;box-shadow:none;background:transparent;
+ transform:rotateY(0deg)
+}
 .openbook-turn-leaf[data-direction="1"]{right:0;transform-origin:left center}
 .openbook-turn-leaf[data-direction="-1"]{left:0;transform-origin:right center}
-.openbook-turn-leaf:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#33201814,transparent 22%,transparent 73%,#fffefc80);pointer-events:none}
-.openbook-turn-leaf .leaf-motif{position:absolute;inset:0;display:grid;place-items:center;color:#c2a49b;font:italic clamp(12px,4cqw,25px) Georgia,serif}
+.book-leaf-face{
+ position:absolute;inset:0;overflow:hidden;
+ backface-visibility:hidden;-webkit-backface-visibility:hidden;
+ pointer-events:none;background:#fffaf3
+}
+.book-leaf-front{transform:translateZ(.3px)}
+.book-leaf-back{transform:rotateY(180deg) translateZ(.3px)}
+.book-leaf-face>.openbook-page{
+ width:100%;height:100%;min-height:100%;box-sizing:border-box;
+ border:0;box-shadow:none;border-radius:0;pointer-events:none
+}
+.book-leaf-face:after{
+ content:"";position:absolute;inset:0;z-index:4;pointer-events:none;
+ background:linear-gradient(90deg,#63453913 0%,#fffef9a8 14%,transparent 30%,transparent 76%,#68482f13 100%);
+ opacity:.42
+}
+.book-leaf-back:after{
+ background:linear-gradient(90deg,#7357401a,transparent 25%,transparent 77%,#fffdfa8a);
+ opacity:.3
+}
+/* Keep a whisper of thickness, not a floating hard-cover or a heavy shadow. */
+.openbook-turn-leaf .memory-composition{box-shadow:none!important}
+.openbook-turn-leaf .photo-layer{box-shadow:0 1px 3px #3c2c2317!important}
 .openbook-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 12px}
 .openbook-controls button{min-height:44px;min-width:87px}
 .openbook-count{color:#8d7770;font-size:12px;font-weight:700;text-align:center}
@@ -88,3 +116,12 @@ body:has(.book-photo-overlay){overflow:hidden}
  .home-book-nav-next{right:-7px}
 }
 @media(min-width:650px){.home-book-feature .openbook-stage{min-height:300px;aspect-ratio:1.35}}
+
+/* Lightweight book page-turn tuning. */
+.openbook-stage{perspective:1100px;box-shadow:0 3px 11px #56443a1a,0 8px 17px #56443a0c}
+.openbook-stage:before{background:linear-gradient(90deg,transparent,#57423115 41%,#493a2b1d 50%,#fffef752 62%,transparent)}
+.openbook-stage:after{box-shadow:0 2px 1px #b6a79d35}
+.openbook-page .memory-composition .photo-layer{border-width:1px;border-bottom-width:2px;box-shadow:0 1px 4px #3c2c2318}
+@media (prefers-reduced-motion:reduce){
+ .openbook-turn-leaf{display:none!important}
+}
