@@ -99,3 +99,6 @@ body:has(.book-photo-overlay){overflow:hidden}
 @media(min-width:650px){
  .home-book-feature .openbook-stage{min-height:300px;aspect-ratio:1.35}
 }
+
+/* Below-the-fold scrapbook cards do not need immediate layout/painting. */
+.home-v3 .home-page-feed .slice-card{content-visibility:auto;contain-intrinsic-size:auto 530px}
