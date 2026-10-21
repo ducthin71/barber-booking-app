@@ -50,6 +50,7 @@ function renderHome(knownPages){
  const selected=prev>=0?prev:lastStory>=0?lastStory:0;
  S.selected=Math.max(0,Math.min(selected,pages.length-1));
  S.start=Math.floor(S.selected/2)*2;
+ chroniclePage=S.selected;
  S.homePageId=pages[S.selected]?.id||null;S.homePageCount=pages.length;
  const hasStory=lastStory>=0;
  return '<section class="openbook home-book-feature" aria-label="Cuốn Kỷ Niệm Của Tôi đang mở">'+
